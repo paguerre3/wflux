@@ -12,3 +12,15 @@ until at least one chef becomes available (probably setting a blocking time peri
 until Chefs get available.
 
 ![non-blocking](./img/0-non-blocking.png)
+
+<b>WebFlux</b> is an implementation of Reactive Programming that can be considered as a Pipe.
+
+<code>Mono</code> and <code>Flux</code> are the two main types of Reactive Programming:
+- <code>Mono</code> is a <b>Single</b> value that can be either <b>empty</b> or <b>non-empty</b>. Used for a ***single entity***.
+- <code>Flux</code> is a <b>Stream</b> of values that can be either <b>empty</b> or <b>non-empty</b>. Used for a ***collection of entities***.
+
+
+
+
+
+
