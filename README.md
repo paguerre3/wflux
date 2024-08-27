@@ -43,11 +43,45 @@ Publisher/Subscriber reactive Steps:
 
 ---
 ## WebFlux
-<b>WebFlux</b> is an implementation of Reactive Programming that can be considered as a Pipe.
+WebFlux dependency uses <b>Project Reactor</b> as the reactive library, based on Reactive Streams specification, 
+for building non-blocking applications on the JVM. 
 
+#### 1. Mono
 <code>Mono</code> and <code>Flux</code> are the two main types of Reactive Programming:
-- <code>Mono</code> is a <b>Single</b> value that can be either <b>empty</b> or <b>non-empty</b>. Used for a ***single entity***.
-- <code>Flux</code> is a <b>Stream</b> of values that can be either <b>empty</b> or <b>non-empty</b>. Used for a ***collection of entities***.
+<code>Mono</code> is a <b>Single</b> value that can be either <b>empty</b> or <b>non-empty</b>. Used for a ***single entity***.
+- ⚠️<code>>Mono.just("")</code> doesn't allow null values while <code>>Mono.justOrEmpty(null)</code> allows it without throwing error.
+- <code>Mono.just("java").log()</code> will log the workflow life cycle after <code>subscribe()</code> is performed, otherwise it doesn't do anything, i.e. the log won't display "java" as no subscription exists.
+- <code>Mono.empty()</code> simply returns empty even after subscription.
+
+<pre><code>
+    private Mono<String> verifySingleValue(final String value) {
+        return Mono.
+                justOrEmpty(value).
+                log();
+    }
+
+    public static void main(String[] args) {
+        var app = new AReactiveDefinitions();
+        app.verifySingleValue("java").subscribe(System.out::println);
+        app.verifySingleValue(null).subscribe(System.out::println);
+    }
+
+// console output:
+> Task :org.wflux.demo.AReactiveDefinitions.main()
+20:07:55.708 [main] INFO reactor.Mono.Just.1 -- | onSubscribe([Synchronous Fuseable] Operators.ScalarSubscription)
+20:07:55.712 [main] INFO reactor.Mono.Just.1 -- | request(unbounded)
+20:07:55.712 [main] INFO reactor.Mono.Just.1 -- | onNext(java)
+java
+20:07:55.712 [main] INFO reactor.Mono.Just.1 -- | onComplete()
+20:07:55.712 [main] INFO reactor.Mono.Empty.2 -- onSubscribe([Fuseable] Operators.EmptySubscription)
+20:07:55.712 [main] INFO reactor.Mono.Empty.2 -- request(unbounded)
+20:07:55.712 [main] INFO reactor.Mono.Empty.2 -- onComplete()
+
+BUILD SUCCESSFUL in 3s
+</code></pre>
+
+#### 2. Flux
+<code>Flux</code> is a <b>Stream</b> of values that can be either <b>empty</b> or <b>non-empty</b>. Used for a ***collection of entities***.
 
 
 ---
