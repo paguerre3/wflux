@@ -48,9 +48,12 @@ jobs:
           done
 
       - name: Commit and push changes
+        env:
+          ACTIONS_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         run: |
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@github.com'
+          git remote set-url origin https://x-access-token:${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }}
           if [ -n "$(git status --porcelain)" ]; then
             git add img/*.png
             git commit -m 'Automatically convert .drawio to .png'
@@ -58,3 +61,4 @@ jobs:
           else
             echo "No changes to commit"
           fi
+      
