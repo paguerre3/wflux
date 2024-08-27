@@ -50,6 +50,20 @@ Publisher/Subscriber reactive Steps:
 - <code>Flux</code> is a <b>Stream</b> of values that can be either <b>empty</b> or <b>non-empty</b>. Used for a ***collection of entities***.
 
 
+---
+### Requirements
+1. ⚠️Docker must be running before executing Application.
+2. <code>docker-compose -f mongo.yml up -d</code> before running tests.
+
+
+---
+### Further samples
+***Forked Repository***
+
+[Reactive Programing, JWT, MSA and OAuth](https://github.com/paguerre3/Spring-Boot-Tutorials)
+
+
+
 
 
 
