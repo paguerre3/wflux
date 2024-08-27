@@ -44,15 +44,15 @@ Publisher/Subscriber reactive Steps:
 ---
 ## WebFlux
 WebFlux dependency uses <b>Project Reactor</b> as the reactive library, based on Reactive Streams specification, 
-for building non-blocking applications on the JVM. 
+for building non-blocking applications on the JVM.
+
+<code>Mono</code> and <code>Flux</code> are the two main types of Reactive Programming:
 
 #### 1. Mono
-<code>Mono</code> and <code>Flux</code> are the two main types of Reactive Programming:
 <code>Mono</code> is a <b>Single</b> value that can be either <b>empty</b> or <b>non-empty</b>. Used for a ***single entity***.
-- ⚠️<code>>Mono.just("")</code> doesn't allow null values while <code>>Mono.justOrEmpty(null)</code> allows it without throwing error.
+- ⚠️<code>Mono.just("")</code> doesn't allow null values while <code>Mono.justOrEmpty(null)</code> allows it without throwing error.
 - <code>Mono.just("java").log()</code> will log the workflow life cycle after <code>subscribe()</code> is performed, otherwise it doesn't do anything, i.e. the log won't display "java" as no subscription exists.
 - <code>Mono.empty()</code> simply returns empty even after subscription.
-
 <pre><code>
     private Mono<String> verifySingleValue(final String value) {
         return Mono.
