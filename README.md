@@ -10,4 +10,4 @@ until at least one chef becomes available (probably setting a blocking time peri
 <b>A none blocking technique allows the Manager to accept all requests</b>, handle the processing priority order and availability, 
 <b>and then notify the users once every request is being completed</b> -without the need of blocking requests 
 until Chefs get available.
-![non-blocking](./img/0-non-blocking.png)
+![non-blocking](./img/0-non-blocking-technique.png)
