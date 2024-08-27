@@ -11,4 +11,4 @@ until at least one chef becomes available (probably setting a blocking time peri
 <b>and then notify the users once every request is being completed</b> -without the need of blocking requests 
 until Chefs get available.
 
-![non-blocking](./img/0-non-blocking.png)
+![non-blocking](./img/0-non-blocking-technique.png)

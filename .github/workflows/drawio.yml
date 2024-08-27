@@ -39,7 +39,7 @@ jobs:
         run: Xvfb :99 -screen 0 1024x768x24 &
 
       - name: Set DISPLAY environment variable
-        run: echo "::set-env name=DISPLAY::99"
+        run: echo "DISPLAY=:99" >> $GITHUB_ENV
 
       - name: Convert .drawio to .png
         run: |
