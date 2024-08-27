@@ -53,7 +53,9 @@ Publisher/Subscriber reactive Steps:
 ---
 ### Requirements
 1. ⚠️Docker must be running before executing Application.
-2. <code>docker-compose -f mongo.yml up -d</code> before running tests.
+2. <code>docker-compose -f mongo.yml up -d</code> before running tests. 
+
+***Optional***: Running under WSL needs allowing traffic through the firewall, i.e. using PS <code>New-NetFirewallRule -DisplayName "Allow MongoDB" -Direction Inbound -LocalPort 27017 -Protocol TCP -Action Allow</code>.  
 
 
 ---
