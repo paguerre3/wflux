@@ -1,0 +1,31 @@
+name: Convert Drawio to PNG
+
+on:
+  push:
+    paths:
+      - 'img/**/*.drawio'
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install draw.io CLI
+        run: sudo apt-get install drawio
+
+      - name: Convert .drawio to .png
+        run: |
+          for file in $(find img -name "*.drawio"); do
+            drawio -x -f png -o "${file%.drawio}.png" "$file"
+          done
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add img/*.png
+          git commit -m 'Automatically convert .drawio to .png'
+          git push
+
