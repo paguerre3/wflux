@@ -52,7 +52,7 @@ for building non-blocking applications on the JVM.
 <code>Mono</code> is a <b>Single</b> value that can be either <b>empty</b> or <b>non-empty</b>. Used for a ***single entity***.
 - ⚠️<code>Mono.just("")</code> doesn't allow null values while <code>Mono.justOrEmpty(null)</code> allows it without throwing error.
 - <code>Mono.just("java").log()</code> will log the workflow life cycle after <code>subscribe()</code> is performed, otherwise it doesn't do anything, i.e. the log won't display "java" as no subscription exists.
-- <code>Mono.empty()</code> simply returns empty even after subscription.
+- <code>Mono.empty()</code> simply returns empty even after subscription -***Note*** <code>onNext()</code> isn't performed when returning empty.
 <pre><code>
     private Mono<String> verifySingleValue(final String value) {
         return Mono.
