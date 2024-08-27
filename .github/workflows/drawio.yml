@@ -12,8 +12,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Cache snapd
+        uses: actions/cache@v2
+        with:
+          path: /var/lib/snapd
+          key: ${{ runner.os }}-snapd
+
+      - name: Install snapd
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: sudo apt-get update && sudo apt-get install -y snapd
+
+      - name: Cache draw.io CLI
+        uses: actions/cache@v2
+        with:
+          path: /var/lib/snapd/snap/bin/drawio
+          key: ${{ runner.os }}-drawio
+
       - name: Install draw.io CLI
-        run: sudo apt-get install drawio
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: sudo snap install drawio
 
       - name: Convert .drawio to .png
         run: |
@@ -25,7 +42,10 @@ jobs:
         run: |
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@github.com'
-          git add img/*.png
-          git commit -m 'Automatically convert .drawio to .png'
-          git push
-
+          if [ -n "$(git status --porcelain)" ]; then
+            git add img/*.png
+            git commit -m 'Automatically convert .drawio to .png'
+            git push
+          else
+            echo "No changes to commit"
+          fi
