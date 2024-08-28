@@ -101,7 +101,7 @@ Flux.fromStream(filtered).log().subscribe(System.out::println);
 final var filtered = Arrays.stream("java", null, "go").map(Optional::ofNullable).map(Mono::justOrEmpty).toList();
 Flux.defer(() -> Flux.concat(filtered)).log().subscribe(System.out::println);
 </code></pre>
-- <b>Defer</b>: <code>Flux.defer() and Mono.defer()</code> are methods provided by Project Reactor that allows to create a Flux or Mono lazily, 
+- ⚠️<b>Defer</b>: <code>Flux.defer() and Mono.defer()</code> are methods provided by Project Reactor that allows to create a Flux or Mono lazily, 
 meaning the actual creation of the reactive sequence is deferred until a subscriber subscribes to it. 
 This can be useful when you want to delay the evaluation of the reactive sequence until it's actually needed, ensuring that the sequence is generated fresh for each new subscriber.
 - <code>Flux</code> Publisher can be created using <code>Flux.just(...), Flux.fromIterable(), Flux.fromArray(), or Flux.fromStream(...)</code> methods.
@@ -132,6 +132,45 @@ go
 ⚠️The <b>Reactive Streams Specification</b> mandates that null values are not permitted in reactive streams to avoid ambiguity and potential errors during stream processing.
 
 ***Note*** <code>onNext()</code> isn't performed when returning empty.
+
+
+---
+#### Map and FlatMap
+- <code>.map() and .flatMap()</code> <b>Conversion Methods</b> are also supported after publisher/stream creation, i.e. using <code>Flux.fromIterable(...).flatMap(...)</code> -e.g. for returning only people's names of a list of persons- or <code>Mono.just(...).map(...)</code> -e.g. for returning upperCase strings-.
+<pre><code>
+    private Flux<String> getNames(final List<Optional<Person>> people) {
+        return Flux
+                .fromIterable(people)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .flatMap(p -> Mono.justOrEmpty(p.fullName()))
+                .log();
+    }
+
+    public static void main(String[] args) {
+        var app = new AReactiveDefinitions();
+        System.out.println("Map and FlatMap tests ...");
+        app.getNames(List.of(Optional.of(new Person("Cami", 10)),
+                Optional.empty(),
+                Optional.of(new Person("Male", 22)))).subscribe(System.out::println);
+    }
+    
+    record Person(String fullName, int age) {}
+
+// console output:
+Map and FlatMap tests ...
+12:33:16.972 [main] INFO reactor.Flux.FlatMap.4 -- onSubscribe(FluxFlatMap.FlatMapMain)
+12:33:16.972 [main] INFO reactor.Flux.FlatMap.4 -- request(unbounded)
+12:33:16.972 [main] INFO reactor.Flux.FlatMap.4 -- onNext(Cami)
+Cami
+12:33:16.972 [main] INFO reactor.Flux.FlatMap.4 -- onNext(Male)
+Male
+12:33:16.972 [main] INFO reactor.Flux.FlatMap.4 -- onComplete()
+</code></pre>
+
+
+---
+#### Skip and Delay
 
 
 ---
