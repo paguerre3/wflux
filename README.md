@@ -49,7 +49,7 @@ for building non-blocking applications on the JVM.
 <code>Mono</code> and <code>Flux</code> are the two main types of Reactive Programming:
 
 #### 1. Mono
-<code>Mono</code> is a <b>Single</b> value that can be either <b>empty</b> or <b>non-empty</b>. Used for a ***single entity***.
+<code>Mono</code> is a <b>Single Publisher</b> that can return either <b>empty</b> or <b>non-empty</b> data. Used for a ***single entry***.
 - ⚠️<code>Mono.just("")</code> doesn't allow null values while <code>Mono.justOrEmpty(null)</code> allows it without throwing error.
 - <code>Mono.just("java").log()</code> will log the workflow life cycle after <code>subscribe()</code> is performed, otherwise it doesn't do anything, i.e. the log won't display "java" as no subscription exists.
 - <code>Mono.empty()</code> simply returns empty even after subscription -***Note*** <code>onNext()</code> isn't performed when returning empty.
@@ -81,8 +81,32 @@ BUILD SUCCESSFUL in 3s
 </code></pre>
 
 #### 2. Flux
-<code>Flux</code> is a <b>Stream</b> of values that can be either <b>empty</b> or <b>non-empty</b>. Used for a ***collection of entities***.
+<code>Flux</code> is a <b>Stream Publisher</b> that can return either <b>empty</b> or <b>non-empty</b> data. Used for a ***collection of entries***.
+- <code>Flux</code> is designed to handle a sequence of elements, including empty sequences, but it does not directly support null values. 
+Unlike Mono, which has a <code>Mono.justOrEmpty()</code> method to handle potentially null values, Flux does not have a direct equivalent for handling null elements within its sequence.
+Some strategies for handling null values are:
+<pre><code>
+// alt1: using "filter"
+Flux.just("A", null, "B")
+        .filter(Objects::nonNull);
 
+// alt2: using "map" and replacing nulls with "default" value 
+Flux.just("A", null, "B")
+        .map(value -> value != null ? value : "default")
+
+// alt3: using "flatMap" converting null to Mono.empty() 
+Flux<String> flux = Flux.just("A", null, "B").
+                            flatMap(value -> value != null ? Mono.just(value) : Mono.empty());
+
+// alt4: use defer from a collection or a stream where null might be present combined with handling null
+List<String> dataList = Arrays.asList("A", null, "B");
+Flux<String> flux = Flux.defer(() -> Flux.fromIterable(dataList)
+                                            .filter(Objects::nonNull));
+</code></pre>
+- <b>Defer</b>: <code>Flux.defer() and Mono.defer()</code> are methods provided by Project Reactor that allows to create a Flux or Mono lazily, 
+meaning the actual creation of the reactive sequence is deferred until a subscriber subscribes to it. 
+This can be useful when you want to delay the evaluation of the reactive sequence until it's actually needed, ensuring that the sequence is generated fresh for each new subscriber.
+- <code>Flux</code> Publisher can be created using <code>Flux.just(...), Flux.fromIterable(...) or Flux.fromStream(...)</code> methods.
 
 ---
 ### Requirements
