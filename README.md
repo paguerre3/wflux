@@ -136,7 +136,7 @@ go
 
 ---
 #### Map and FlatMap
-<code>.map() and .flatMap()</code> <b>Conversion Methods</b> are also supported after publisher/stream creation, i.e. using <code>Flux.fromIterable(...).flatMap(...)</code> -e.g. for returning <code>Mono</code> with only people's names of a list of persons- or <code>Mono.just(...).map(...)</code> -e.g. for returning the wrapped Person of an <code>Optional</p>-.
+<code>.map() and .flatMap()</code> <b>Conversion Methods</b> are also supported after publisher/stream creation, i.e. using <code>Flux.fromIterable(...).flatMap(...)</code> -e.g. for returning <code>Mono</code> with only people's names of a list of persons- or <code>Mono.just(...).map(...)</code> -e.g. for returning the wrapped Person of an <code>Optional</code>-.
 <pre><code>
     private Flux<String> getNames(final List<Optional<Person>> people) {
         return Flux
