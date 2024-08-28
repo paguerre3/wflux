@@ -131,6 +131,8 @@ go
 ***Important Note***  
 ⚠️The <b>Reactive Streams Specification</b> mandates that null values are not permitted in reactive streams to avoid ambiguity and potential errors during stream processing.
 
+***Note*** <code>onNext()</code> isn't performed when returning empty.
+
 
 ---
 ### Requirements
