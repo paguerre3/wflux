@@ -54,30 +54,29 @@ for building non-blocking applications on the JVM.
 - <code>Mono.just("java").log()</code> will log the workflow life cycle after <code>subscribe()</code> is performed, otherwise it doesn't do anything, i.e. the log won't display "java" as no subscription exists.
 - <code>Mono.empty()</code> simply returns empty even after subscription -***Note*** <code>onNext()</code> isn't performed when returning empty.
 <pre><code>
-    private Mono<String> verifySingleValue(final String value) {
-        return Mono.
-                justOrEmpty(value).
-                log();
+    private Mono<String> verifySingleData(final String value) {
+        return Mono
+                .justOrEmpty(value)
+                .log();
     }
 
     public static void main(String[] args) {
         var app = new AReactiveDefinitions();
-        app.verifySingleValue("java").subscribe(System.out::println);
-        app.verifySingleValue(null).subscribe(System.out::println);
-    }
+        System.out.println("Mono tests ...");
+        app.verifySingleData("java").subscribe(System.out::println);
+        app.verifySingleData(null).subscribe(System.out::println);
 
 // console output:
 > Task :org.wflux.demo.AReactiveDefinitions.main()
-20:07:55.708 [main] INFO reactor.Mono.Just.1 -- | onSubscribe([Synchronous Fuseable] Operators.ScalarSubscription)
-20:07:55.712 [main] INFO reactor.Mono.Just.1 -- | request(unbounded)
-20:07:55.712 [main] INFO reactor.Mono.Just.1 -- | onNext(java)
+Mono tests ...
+23:20:30.175 [main] INFO reactor.Mono.Just.1 -- | onSubscribe([Synchronous Fuseable] Operators.ScalarSubscription)
+23:20:30.178 [main] INFO reactor.Mono.Just.1 -- | request(unbounded)
+23:20:30.180 [main] INFO reactor.Mono.Just.1 -- | onNext(java)
 java
-20:07:55.712 [main] INFO reactor.Mono.Just.1 -- | onComplete()
-20:07:55.712 [main] INFO reactor.Mono.Empty.2 -- onSubscribe([Fuseable] Operators.EmptySubscription)
-20:07:55.712 [main] INFO reactor.Mono.Empty.2 -- request(unbounded)
-20:07:55.712 [main] INFO reactor.Mono.Empty.2 -- onComplete()
-
-BUILD SUCCESSFUL in 3s
+23:20:30.180 [main] INFO reactor.Mono.Just.1 -- | onComplete()
+23:20:30.181 [main] INFO reactor.Mono.Empty.2 -- onSubscribe([Fuseable] Operators.EmptySubscription)
+23:20:30.181 [main] INFO reactor.Mono.Empty.2 -- request(unbounded)
+23:20:30.181 [main] INFO reactor.Mono.Empty.2 -- onComplete()
 </code></pre>
 
 #### 2. Flux
@@ -86,27 +85,52 @@ BUILD SUCCESSFUL in 3s
 Unlike Mono, which has a <code>Mono.justOrEmpty()</code> method to handle potentially null values, Flux does not have a direct equivalent for handling null elements within its sequence.
 Some strategies for handling null values are:
 <pre><code>
-// alt1: using "filter"
-Flux.just("A", null, "B")
-        .filter(Objects::nonNull);
+// alt1: ensure to "filter" data before calling a Publisher creation method, preferably using "fromStream":
+var filtered = Arrays.stream("java", null, "go").filter(Objects::nonNull);
+Flux.fromStream(filtered).log().subscribe(System.out::println);
 
-// alt2: using "map" and replacing nulls with "default" value 
-Flux.just("A", null, "B")
-        .map(value -> value != null ? value : "default")
+// alt2: using "Optional" and "flatMap" converting null to Mono.empty()
+filtered = Arrays.stream("java", null, "go").map(Optional::ofNullable).map(Mono::justOrEmpty).toList();
+Flux.concat(filtered).log().subscribe(System.out::println);
 
-// alt3: using "flatMap" converting null to Mono.empty() 
-Flux<String> flux = Flux.just("A", null, "B").
-                            flatMap(value -> value != null ? Mono.just(value) : Mono.empty());
+// alt3: using "map" and replacing nulls with "default" value 
+var filtered = Arrays.stream("java", null, "go").map(v -> v != null ? v : "default");
+Flux.fromStream(filtered).log().subscribe(System.out::println);
 
-// alt4: use defer from a collection or a stream where null might be present combined with handling null
-List<String> dataList = Arrays.asList("A", null, "B");
-Flux<String> flux = Flux.defer(() -> Flux.fromIterable(dataList)
-                                            .filter(Objects::nonNull));
+// alt4: use defer/lazy from a collection or a stream where null might be present combined with handling null:
+final var filtered = Arrays.stream("java", null, "go").map(Optional::ofNullable).map(Mono::justOrEmpty).toList();
+Flux.defer(() -> Flux.concat(filtered)).log().subscribe(System.out::println);
 </code></pre>
 - <b>Defer</b>: <code>Flux.defer() and Mono.defer()</code> are methods provided by Project Reactor that allows to create a Flux or Mono lazily, 
 meaning the actual creation of the reactive sequence is deferred until a subscriber subscribes to it. 
 This can be useful when you want to delay the evaluation of the reactive sequence until it's actually needed, ensuring that the sequence is generated fresh for each new subscriber.
-- <code>Flux</code> Publisher can be created using <code>Flux.just(...), Flux.fromIterable(...) or Flux.fromStream(...)</code> methods.
+- <code>Flux</code> Publisher can be created using <code>Flux.just(...), Flux.fromIterable(), Flux.fromArray(), or Flux.fromStream(...)</code> methods.
+<pre><code>
+    private Flux<String> verifyCollectionOfData(final String... data) {
+        final var filtered = Arrays.stream(data).map(Optional::ofNullable).map(Mono::justOrEmpty).toList();
+        return Flux.defer(() -> Flux.concat(filtered)).log();
+    }
+
+    public static void main(String[] args) {
+        var app = new AReactiveDefinitions();
+        System.out.println("Flux tests ...");
+        app.verifyCollectionOfData("java", null, "go").subscribe(System.out::println);
+    }
+
+// console output:
+Flux tests ...
+23:58:53.091 [main] INFO reactor.Flux.Defer.3 -- onSubscribe(FluxConcatIterable.ConcatIterableSubscriber)
+23:58:53.091 [main] INFO reactor.Flux.Defer.3 -- request(unbounded)
+23:58:53.091 [main] INFO reactor.Flux.Defer.3 -- onNext(java)
+java
+23:58:53.091 [main] INFO reactor.Flux.Defer.3 -- onNext(go)
+go
+23:58:53.091 [main] INFO reactor.Flux.Defer.3 -- onComplete()
+</code></pre>
+
+***Important Note***  
+⚠️The <b>Reactive Streams Specification</b> mandates that null values are not permitted in reactive streams to avoid ambiguity and potential errors during stream processing.
+
 
 ---
 ### Requirements
