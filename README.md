@@ -192,7 +192,7 @@ E.g. adding <b>Delay</b> before the emission of each of the elements of the stre
         // Total duration of emission is "1.5" seconds but the elements emitted inside "1" second window will be ignored:
         app.getCertainDataWithDelay("cpp", "python", "javascript", "java", "go").subscribe(System.out::println);
         // Requirement!!!: Wait for "2" seconds to allow the emission of the elements according to de delay established above.
-        // Otherwise, the elements won't be emitted as the Main thread will exit immediately as teh Stream Workflow runs in parallel -Child thread.
+        // Otherwise, the elements won't be emitted as the Main thread will exit immediately because the Stream Workflow runs in parallel -Child thread.
         TimeUnit.SECONDS.sleep(2);
 
 // console output:
