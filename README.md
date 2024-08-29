@@ -250,7 +250,60 @@ SkipWhile and SkipUntil tests ...
 
 ---
 ### Concat and Merge 
-- <code>concat</code> method is used to concatenate two or more Flux streams.
+- <code>concat</code> method <b>combines multiple Flux streams into one</b>, but it does so <b>sequentially</b>, i.e. it will wait for the first Flux to complete before starting to emit elements from the next Flux.
+<b>Sequentially concatenates multiple Flux streams</b>, emitting all elements from one Flux before starting the next.
+<b>Useful when the order of elements matters</b> and you want to maintain the complete sequence from one Flux before moving to the next.
+- <code>merge</code> method <b>combines multiple Flux streams into one</b>, <b>interleaving their elements as they are emitted</b>, i.e. elements from all source <b>Flux streams are emitted as soon as they are available, without waiting for one stream to complete</b> before starting the next.
+<b>Interleaves</b> elements from multiple Flux streams as they are emitted.
+<b>Useful when you want to process elements as soon as they become available</b>, regardless of the source.
+<pre><code>
+    private Flux<Integer> combine(final int start0, final int start1, final int count,
+                                  final Duration delay, final InsertMode mode) {
+        var f1 = Flux.range(start0, count).delayElements(delay);
+        var f2 = Flux.range(start1, count).delayElements(delay.plusMillis(50));
+        // enhanced "switch"
+        return switch (mode) {
+            case CONCAT -> Flux.concat(f1, f2);
+            case MERGE -> Flux.merge(f1, f2);
+        };
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        var app = new AReactiveDefinitions();
+        System.out.println("Concat and Merge tests ...");
+        app.combine(1, 101, 5, Duration.ofMillis(100), InsertMode.CONCAT).subscribe(System.out::println);
+        TimeUnit.SECONDS.sleep(2);
+        System.out.println("...");
+        app.combine(1, 101, 5, Duration.ofMillis(100), InsertMode.MERGE).subscribe(System.out::println);
+        // Requirement!!!: Wait for 2 seconds to allow the emission of the elements according to de delay established above.
+        // Otherwise, the elements won't be emitted as the main thread will exit immediately.
+        TimeUnit.SECONDS.sleep(2);
+
+// console output:
+Concat and Merge tests ...
+1
+2
+3
+4
+5
+101
+102
+103
+104
+105
+...
+1
+101
+2
+102
+3
+4
+103
+5
+104
+105
+</code></pre>
+
 
 ---
 ### Requirements

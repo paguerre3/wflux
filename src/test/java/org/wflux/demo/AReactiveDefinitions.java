@@ -49,6 +49,17 @@ public class AReactiveDefinitions {
         return Flux.concat(f1, f2);
     }
 
+    private Flux<Integer> combine(final int start0, final int start1, final int count,
+                                  final Duration delay, final InsertMode mode) {
+        var f1 = Flux.range(start0, count).delayElements(delay);
+        var f2 = Flux.range(start1, count).delayElements(delay.plusMillis(50));
+        // enhanced "switch"
+        return switch (mode) {
+            case CONCAT -> Flux.concat(f1, f2);
+            case MERGE -> Flux.merge(f1, f2);
+        };
+    }
+
     public static void main(String[] args) throws InterruptedException {
         var app = new AReactiveDefinitions();
         System.out.println("Mono tests ...");
@@ -74,7 +85,18 @@ public class AReactiveDefinitions {
         app.skipWhileAndUntil(1, 100, 7, 1097).subscribe(System.out::println);
         System.out.println("...");
         app.skipWhileAndUntil(1, 1, 7, 7).subscribe(System.out::println);
+
+        System.out.println("Concat and Merge tests ...");
+        app.combine(1, 101, 5, Duration.ofMillis(100), InsertMode.CONCAT).subscribe(System.out::println);
+        TimeUnit.SECONDS.sleep(2);
+        System.out.println("...");
+        app.combine(1, 101, 5, Duration.ofMillis(100), InsertMode.MERGE).subscribe(System.out::println);
+        // Requirement!!!: Wait for 2 seconds to allow the emission of the elements according to de delay established above.
+        // Otherwise, the elements won't be emitted as the main thread will exit immediately.
+        TimeUnit.SECONDS.sleep(2);
     }
 
     record Person(String fullName, int age) {}
+
+    enum InsertMode { CONCAT, MERGE }
 }
