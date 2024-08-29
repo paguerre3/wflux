@@ -81,8 +81,8 @@ java
 
 #### 2. Flux
 <code>Flux</code> is a <b>Stream Publisher</b> that can return either <b>empty</b> or <b>non-empty</b> data. Used for a ***collection of entries***.
-- <code>Flux</code> is designed to handle a sequence of elements, including empty sequences, but it does not directly support null values. 
-Unlike Mono, which has a <code>Mono.justOrEmpty()</code> method to handle potentially null values, Flux does not have a direct equivalent for handling null elements within its sequence.
+- <code>Flux</code> is designed to handle a sequence of elements, including empty sequences, but <b>it does not directly support null values</b>. 
+Unlike Mono, which has a <code>Mono.justOrEmpty()</code> method to handle potentially null values, <b>Flux does not have a direct equivalent for handling null elements within its sequence</b>.
 Some strategies for handling null values are:
 <pre><code>
 // alt1: ensure to "filter" data before calling a Publisher creation method, preferably using "fromStream":
