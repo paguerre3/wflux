@@ -170,7 +170,40 @@ Male
 
 
 ---
-#### Skip and Delay
+#### Skip and Delay Elements
+<code>Flux</code> has <b>skip</b> and <b>delayElements</b> methods that are used to skip elements or delay the emission of them respectively.
+- <code>.skip(...)</code> is a method overloaded with many options/conditions to <b>skip elements already emitted</b> within a Reactive Stream a.k.a. skipping the <code>onNext()</code> call and is being added after creating Flux or Mono streams/Publishers for changing the behaviour of the Workflow.
+- <code>.delayElements(...)</code> is another method being added after creating Flux or Mono streams/Publishers for changing the behaviour of the Workflow <b>adding time before emitting each element</b>.
+E.g. adding <b>Delay</b> before the emission of each of the elements of the stream but taking into account that some of them will be <b>Skipped</b> within an specified time window, i.e. Flux will ignore all elements emitted during the initial duration and only start emitting after that period has elapsed. 
+<pre><code>
+    private Flux<String> getCertainDataWithDelay(final String... data) {
+        return Flux.just(data)
+                // add Delay of 300 milliseconds among the emission of each element:
+                .delayElements(Duration.ofMillis(300))
+                // only start emitting after 1 second has elapsed, i.e. the 1st 3 elements emitted will always be ignored:
+                .skip(Duration.ofSeconds(1))
+                .log();
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        var app = new AReactiveDefinitions();
+        System.out.println("Delay and Skip tests ...");
+        // Total duration of emission is "1.5" seconds but the elements emitted inside "1" second window will be ignored:
+        app.getCertainDataWithDelay("cpp", "python", "javascript", "java", "go").subscribe(System.out::println);
+        // Requirement!!!: Wait for "2" seconds to allow the emission of the elements according to de delay established above.
+        // Otherwise, the elements won't be emitted as the main thread will exit immediately.
+        TimeUnit.SECONDS.sleep(2);
+
+// console output:
+Delay and Skip tests ...
+11:41:00.517 [main] INFO reactor.Flux.SkipUntilOther.5 -- onSubscribe(SerializedSubscriber)
+11:41:00.517 [main] INFO reactor.Flux.SkipUntilOther.5 -- request(unbounded)
+11:41:01.748 [parallel-5] INFO reactor.Flux.SkipUntilOther.5 -- onNext(java)
+java
+11:41:02.063 [parallel-6] INFO reactor.Flux.SkipUntilOther.5 -- onNext(go)
+go
+11:41:02.063 [parallel-6] INFO reactor.Flux.SkipUntilOther.5 -- onComplete()
+</code></pre>
 
 
 ---
