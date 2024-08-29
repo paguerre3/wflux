@@ -174,6 +174,7 @@ Male
 <code>Flux</code> has <b>skip</b> and <b>delayElements</b> methods that are used to skip elements or delay the emission of them respectively.
 - <code>.skip(...)</code> is a method overloaded with many options/conditions to <b>skip elements already emitted</b> within a Reactive Stream a.k.a. skipping the <code>onNext()</code> call and is being added after creating Flux or Mono streams/Publishers for changing the behaviour of the Workflow.
 - <code>.delayElements(...)</code> is another method being added after creating Flux or Mono streams/Publishers for changing the behaviour of the Workflow <b>adding time before emitting each element</b>.
+
 E.g. adding <b>Delay</b> before the emission of each of the elements of the stream but taking into account that some of them will be <b>Skipped</b> within an specified time window, i.e. Flux will ignore all elements emitted during the initial duration and only start emitting after that period has elapsed. 
 <pre><code>
     private Flux<String> getCertainDataWithDelay(final String... data) {
@@ -191,7 +192,7 @@ E.g. adding <b>Delay</b> before the emission of each of the elements of the stre
         // Total duration of emission is "1.5" seconds but the elements emitted inside "1" second window will be ignored:
         app.getCertainDataWithDelay("cpp", "python", "javascript", "java", "go").subscribe(System.out::println);
         // Requirement!!!: Wait for "2" seconds to allow the emission of the elements according to de delay established above.
-        // Otherwise, the elements won't be emitted as the main thread will exit immediately.
+        // Otherwise, the elements won't be emitted as the Main thread will exit immediately as teh Stream Workflow runs in parallel -Child thread.
         TimeUnit.SECONDS.sleep(2);
 
 // console output:
