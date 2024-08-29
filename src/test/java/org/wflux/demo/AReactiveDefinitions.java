@@ -39,6 +39,16 @@ public class AReactiveDefinitions {
                 .log();
     }
 
+    private Flux<Integer> skipWhileAndUntil(final int whileStart, final int untilStart,
+                                            final int whileVal, final int untilVal) {
+        var f1 = Flux.range(whileStart, 10*whileStart).skipWhile(n -> n < whileVal);
+        // Note last argument of range is "count" and NOT "end position",
+        // i.e. Starts at "100" having a Count of "1000" elements:
+        // Result=100, 101, 102, ..., 1097, 1098, 1099 -1099 is the 1000th element in the sequence.
+        var f2 = Flux.range(untilStart, 10*untilStart).skipUntil(n -> n >= untilVal);
+        return Flux.concat(f1, f2);
+    }
+
     public static void main(String[] args) throws InterruptedException {
         var app = new AReactiveDefinitions();
         System.out.println("Mono tests ...");
@@ -59,6 +69,11 @@ public class AReactiveDefinitions {
         // Requirement!!!: Wait for 2 seconds to allow the emission of the elements according to de delay established above.
         // Otherwise, the elements won't be emitted as the main thread will exit immediately.
         TimeUnit.SECONDS.sleep(2);
+
+        System.out.println("SkipWhile and SkipUntil tests ...");
+        app.skipWhileAndUntil(1, 100, 7, 1097).subscribe(System.out::println);
+        System.out.println("...");
+        app.skipWhileAndUntil(1, 1, 7, 7).subscribe(System.out::println);
     }
 
     record Person(String fullName, int age) {}

@@ -206,6 +206,51 @@ go
 11:41:02.063 [parallel-6] INFO reactor.Flux.SkipUntilOther.5 -- onComplete()
 </code></pre>
 
+-  <code>skipWhile(predicate ...) and skipUntil(predicate ...)</code> are methods that allows to skip elements in a Flux based on a predicate condition. 
+They differ in how they determine which elements to skip, i.e. in <code>skipWhile</code> ignores elements as long as the given predicate returns true and in <code>skipUntil</code> ignores elements until the given predicate returns true.
+- <code>range</code> method is used to create a Flux of Integers from a <b>Starting</b> position and a <b>Count</b> of elements.
+<pre><code>
+    private Flux<Integer> skipWhileAndUntil(final int whileStart, final int untilStart,
+                                            final int whileVal, final int untilVal) {
+        var f1 = Flux.range(whileStart, 10*whileStart).skipWhile(n -> n < whileVal);
+        // ⚠️Note last argument of Range is "count" and NOT "end position",
+        // i.e. Starts at "100" having a Count of "1000" elements:
+        // Result=100, 101, 102, ..., 1097, 1098, 1099 -1099 is the 1000th element in the sequence.
+        var f2 = Flux.range(untilStart, 10*untilStart).skipUntil(n -> n >= untilVal);
+        return Flux.concat(f1, f2);
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        var app = new AReactiveDefinitions();
+        System.out.println("SkipWhile and SkipUntil tests ...");
+        app.skipWhileAndUntil(1, 100, 7, 1097).subscribe(System.out::println);
+        System.out.println("...");
+        app.skipWhileAndUntil(1, 1, 7, 7).subscribe(System.out::println);
+
+// console output:
+SkipWhile and SkipUntil tests ...
+7
+8
+9
+10
+1097
+1098
+1099
+...
+7
+8
+9
+10
+7
+8
+9
+10
+</code></pre>
+
+
+---
+### Concat and Merge 
+- <code>concat</code> method is used to concatenate two or more Flux streams.
 
 ---
 ### Requirements
