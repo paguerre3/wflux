@@ -405,6 +405,9 @@ Collect List and Block tests ...
 If the Mono is empty, it will return null.
 - Using <code>block()</code> on a Flux<T>, it will wait until the Flux completes and return the first emitted element. 
 If the Flux is empty, it will return null.
+- ⚠️<code>block()</code> in a reactive application <b>can defeat the purpose of non-blocking I/O and reactive programming, as it will block the thread and can lead to performance issues if used improperly</b>. 
+It is generally discouraged in production code, especially in a fully reactive environment.
+
 
 ---
 ### Requirements
