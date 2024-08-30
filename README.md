@@ -358,7 +358,7 @@ Zip tests ...
 </code></pre>
 
 <b>Use Cases:</b>
-- <b>Combine Related Data</b>: Zipping is useful when to combine related pieces of data that are emitted from different sources simultaneously.
+- <b>Combine Related Data</b>: Zipping is useful to combine related pieces of data that are emitted from different sources simultaneously.
 - <b>Synchronization</b>: To process elements from multiple sources together in a synchronized fashion, ensuring that each combined element is processed together.
 
 In summary, <b>zip</b> is used often when there is a need to coordinate multiple asynchronous streams of data.
