@@ -367,7 +367,7 @@ In summary, <b>zip</b> is used often when there is a need to coordinate multiple
 ---
 #### Collect List and Block
 - <code>collectList</code> function is used to <b>collect all the elements emitted by a Flux or Mono into a Observable List</b>, i.e. 
-take all elements emitted by a <code>Flux<T> or Mono<T></code> and return it a <code>Mono<List<T></code>.
+take all elements emitted by a <b>Flux<T> or Mono<T></b> and return it a <b>Mono<List<T>></b>.
 - <code>block</code> method is used to <b>block the current thread until the Mono or Flux completes and returns a result</b>. 
 This is a <b>way to transform the reactive, non-blocking code into a blocking, synchronous call</b>, which can be useful in certain scenarios, 
 e.g. testing or integrating with legacy code resulting into direct <code>java.util.List</code>.
