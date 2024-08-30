@@ -429,7 +429,7 @@ Flux.range(1, 10)
 </code></pre>
 ***Note*** the default 'buffer' behaviour creates a single "batch" including all elements if no condition is provided.
 
-In addition, is possible to 'Buffer by Time', i.e. collecting elements emitted within a specific time window.
+In addition, is possible to *Buffer by Time*, i.e. collecting elements emitted within a specific time window.
 E.g. create batches every 300 milliseconds from a 'take' of 10 (0 - 9) having 'interval' delay of 100 milliseconds:
 <pre><code>
 Flux.interval(Duration.ofMillis(100))
@@ -443,9 +443,9 @@ Flux.interval(Duration.ofMillis(100))
 [6, 7, 8]
 [9]
 </code></pre>
-Other useful methods are 'Buffer by Size and Time', i.e. <code>.bufferTimeout(3, Duration.ofMillis(300))</code> and <code>.bufferUntilAndSkip(Duration.ofMillis(300))</code>, 
-and 'Buffer Until or While a Predicate is True'. 
-<pre><code>}
+Other useful methods are *Buffer by Size and Time*, i.e. <code>.bufferTimeout(3, Duration.ofMillis(300))</code>, 
+and *Buffer Until or While a Predicate is True*. 
+<pre><code>
     private Flux<List<Long>> buffer(final long take, final Duration interval, final Duration batch) {
         return Flux.interval(interval)
                 .take(take)
