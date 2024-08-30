@@ -85,6 +85,12 @@ public class AReactiveDefinitions {
                 .log();
     }
 
+    private Flux<List<Long>> buffer(final long take, final Duration interval, final Duration batch) {
+        return Flux.interval(interval)
+                .take(take)
+                .buffer(batch);
+    }
+
     public static void main(String[] args) throws InterruptedException {
         var app = new AReactiveDefinitions();
         System.out.println("Mono tests ...");
@@ -132,6 +138,11 @@ public class AReactiveDefinitions {
         // which will wait until the Mono<List> is completed so there is no need to set a Time-Out above 1 second:
         List<Integer> legacyList = app.collectAsSingle(new Integer[]{1, 2, 3, 4}, Duration.ofMillis(250)).block();
         System.out.println(legacyList);
+
+        System.out.println("Buffer tests ...");
+        // emit elements every 100 millisecond and buffer every 210 milliseconds, i.e. creating 3 batches:
+        app.buffer(5, Duration.ofMillis(100), Duration.ofMillis(210)).subscribe(System.out::println);
+        TimeUnit.SECONDS.sleep(1);
     }
 
     record Person(String fullName, int age) {}
