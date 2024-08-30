@@ -321,7 +321,7 @@ It waits until all sources have emitted an element before combining them.
 2. <b>Combination</b>: <code>zip</code> by default, it produces a Tuple containing the elements from each source ***-from a Minimum of 2 to 8 sources Maximum, i.e. returning from Tuple2 ... to Tuple8-***.
 Alternatively, you can provide a combinator function to process the elements from the sources and return a combined result.
 3. ⚠️<b>Completes on Shortest Stream</b>: <b>If one of the sources completes before the others, the resulting Flux will complete immediately</b>, and no further combinations are emitted.
-<pre><code>}
+<pre><code>
     private Flux<Tuple2<Integer, Integer>> combine(final int start0, final int start1, final int count) {
         var f1 = Flux.range(start0, count);
         var f2 = Flux.range(start1, count);
