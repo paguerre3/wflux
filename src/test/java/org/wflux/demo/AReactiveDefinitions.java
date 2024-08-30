@@ -2,6 +2,7 @@ package org.wflux.demo;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -49,7 +50,7 @@ public class AReactiveDefinitions {
         return Flux.concat(f1, f2);
     }
 
-    private Flux<Integer> combine(final int start0, final int start1, final int count,
+    private Flux<Integer> unionAll(final int start0, final int start1, final int count,
                                   final Duration delay, final InsertMode mode) {
         var f1 = Flux.range(start0, count).delayElements(delay);
         var f2 = Flux.range(start1, count).delayElements(delay.plusMillis(50));
@@ -58,6 +59,20 @@ public class AReactiveDefinitions {
             case CONCAT -> Flux.concat(f1, f2);
             case MERGE -> Flux.merge(f1, f2);
         };
+    }
+
+    private Flux<Tuple2<Integer, Integer>> combine(final int start0, final int start1, final int count) {
+        var f1 = Flux.range(start0, count);
+        var f2 = Flux.range(start1, count);
+        // default behaviour
+        return Flux.zip(f1, f2);
+    }
+
+    private Flux<String> combineToSingle(final Integer[] data0, final String... data1) {
+        var f1 = Flux.fromArray(data0);
+        var f2 = Flux.just(data1);
+        // using a combination function:
+        return Flux.zip(f1, f2, (n, s) -> (n + "-" + s).toUpperCase());
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -87,13 +102,19 @@ public class AReactiveDefinitions {
         app.skipWhileAndUntil(1, 1, 7, 7).subscribe(System.out::println);
 
         System.out.println("Concat and Merge tests ...");
-        app.combine(1, 101, 5, Duration.ofMillis(100), InsertMode.CONCAT).subscribe(System.out::println);
+        app.unionAll(1, 101, 5, Duration.ofMillis(100), InsertMode.CONCAT).subscribe(System.out::println);
         TimeUnit.SECONDS.sleep(2);
         System.out.println("...");
-        app.combine(1, 101, 5, Duration.ofMillis(100), InsertMode.MERGE).subscribe(System.out::println);
+        app.unionAll(1, 101, 5, Duration.ofMillis(100), InsertMode.MERGE).subscribe(System.out::println);
         // Requirement!!!: Wait for 2 seconds to allow the emission of the elements according to de delay established above.
         // Otherwise, the elements won't be emitted as the main thread will exit immediately.
         TimeUnit.SECONDS.sleep(2);
+
+        System.out.println("Zip tests ...");
+        app.combine(1, 101, 5).subscribe(System.out::println);
+        System.out.println("...");
+        // it will only combine 1st 3 elements because when the shortest stream completes, the rest will be ignored:
+        app.combineToSingle(new Integer[]{1, 2, 3, 4, 5}, "a", "b", "c").subscribe(System.out::println);
     }
 
     record Person(String fullName, int age) {}

@@ -249,7 +249,7 @@ SkipWhile and SkipUntil tests ...
 
 
 ---
-### Concat and Merge 
+#### Concat and Merge 
 - <code>concat</code> method <b>combines multiple Flux streams into one</b>, but it does so <b>sequentially</b>, i.e. it will wait for the first Flux to complete before starting to emit elements from the next Flux.
 <b>Sequentially concatenates multiple Flux streams</b>, emitting all elements from one Flux before starting the next.
 <b>Useful when the order of elements matters</b> and you want to maintain the complete sequence from one Flux before moving to the next.
@@ -257,7 +257,7 @@ SkipWhile and SkipUntil tests ...
 <b>Interleaves</b> elements from multiple Flux streams as they are emitted.
 <b>Useful when you want to process elements as soon as they become available</b>, regardless of the source.
 <pre><code>
-    private Flux<Integer> combine(final int start0, final int start1, final int count,
+    private Flux<Integer> unionAll(final int start0, final int start1, final int count,
                                   final Duration delay, final InsertMode mode) {
         var f1 = Flux.range(start0, count).delayElements(delay);
         var f2 = Flux.range(start1, count).delayElements(delay.plusMillis(50));
@@ -271,13 +271,16 @@ SkipWhile and SkipUntil tests ...
     public static void main(String[] args) throws InterruptedException {
         var app = new AReactiveDefinitions();
         System.out.println("Concat and Merge tests ...");
-        app.combine(1, 101, 5, Duration.ofMillis(100), InsertMode.CONCAT).subscribe(System.out::println);
+        app.unionAll(1, 101, 5, Duration.ofMillis(100), InsertMode.CONCAT).subscribe(System.out::println);
         TimeUnit.SECONDS.sleep(2);
         System.out.println("...");
-        app.combine(1, 101, 5, Duration.ofMillis(100), InsertMode.MERGE).subscribe(System.out::println);
+        app.unionAll(1, 101, 5, Duration.ofMillis(100), InsertMode.MERGE).subscribe(System.out::println);
         // Requirement!!!: Wait for 2 seconds to allow the emission of the elements according to de delay established above.
         // Otherwise, the elements won't be emitted as the main thread will exit immediately.
         TimeUnit.SECONDS.sleep(2);
+    }
+    
+    enum InsertMode { CONCAT, MERGE }
 
 // console output:
 Concat and Merge tests ...
@@ -304,6 +307,61 @@ Concat and Merge tests ...
 105
 </code></pre>
 
+
+---
+#### Zip
+<code>zip</code> function is used to <b>combine multiple Flux or Mono streams into a single stream</b>, 
+<b>emitting elements as a tuple or applying a specified combinator function</b>.
+
+<code>zip</code> function <b>waits until all the streams emit their next element and then combines these elements into a single output</b>.
+
+<b>Key Characteristics:</b>
+1. <b>Synchronization</b>: <code>zip</code> synchronizes the emissions of multiple publishers (i.e., Flux or Mono). 
+It waits until all sources have emitted an element before combining them.
+2. <b>Combination</b>: <code>zip</code> by default, it produces a Tuple containing the elements from each source ***-from a Minimum of 2 to 8 sources Maximum, i.e. returning from Tuple2 ... to Tuple8-***.
+Alternatively, you can provide a combinator function to process the elements from the sources and return a combined result.
+3. ⚠️<b>Completes on Shortest Stream</b>: <b>If one of the sources completes before the others, the resulting Flux will complete immediately</b>, and no further combinations are emitted.
+<pre><code>}
+    private Flux<Tuple2<Integer, Integer>> combine(final int start0, final int start1, final int count) {
+        var f1 = Flux.range(start0, count);
+        var f2 = Flux.range(start1, count);
+        // default behaviour
+        return Flux.zip(f1, f2);
+    }
+
+    private Flux<String> combineToSingle(final Integer[] data0, final String... data1) {
+        var f1 = Flux.fromArray(data0);
+        var f2 = Flux.just(data1);
+        // using a combination function:
+        return Flux.zip(f1, f2, (n, s) -> (n + "-" + s).toUpperCase());
+    }
+
+    public static void main(String[] args) {
+        var app = new AReactiveDefinitions();
+        System.out.println("Zip tests ...");
+        app.combine(1, 101, 5).subscribe(System.out::println);
+        System.out.println("...");
+        // it will only combine 1st 3 elements because when the shortest stream completes, the rest will be ignored:
+        app.combineToSingle(new Integer[]{1, 2, 3, 4, 5}, "a", "b", "c").subscribe(System.out::println);
+
+// console output:
+Zip tests ...
+[1,101]
+[2,102]
+[3,103]
+[4,104]
+[5,105]
+...
+1-A
+2-B
+3-C
+</code></pre>
+
+<b>Use Cases:</b>
+- <b>Combine Related Data</b>: Zipping is useful when to combine related pieces of data that are emitted from different sources simultaneously.
+- <b>Synchronization</b>: To process elements from multiple sources together in a synchronized fashion, ensuring that each combined element is processed together.
+
+In summary, <b>zip</b> is used often when there is a need to coordinate multiple asynchronous streams of data.
 
 ---
 ### Requirements
