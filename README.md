@@ -363,6 +363,44 @@ Zip tests ...
 
 In summary, <b>zip</b> is used often when there is a need to coordinate multiple asynchronous streams of data.
 
+
+---
+#### Collect List and Block
+- <code>collectList</code> function is used to <b>collect all the elements emitted by a Flux or Mono into a Observable List</b>, i.e. 
+take all elements emitted by a <code>Flux<T> or Mono<T></code> and return it a <code>Mono<List<T></code>.
+- <code>block</code> method is used to <b>block the current thread until the Mono or Flux completes and returns a result</b>. 
+This is a <b>way to transform the reactive, non-blocking code into a blocking, synchronous call</b>, which can be useful in certain scenarios, 
+e.g. testing or integrating with legacy code resulting into direct <code>java.util.List</code>.
+<pre><code>
+    private Mono<List<Integer>> collectAsSingle(final Integer[] data, final Duration delayElements) {
+        // from Flux to Mono
+        return Flux
+                .fromArray(data)
+                .delayElements(delayElements)
+                // returns a Observable none blocking operation as a Mono "single" Stream
+                .collectList()
+                .log();
+    }
+
+    public static void main(String[] args) {
+        var app = new AReactiveDefinitions();
+        System.out.println("Collect tests ...");
+        // instead of subscribing to the Mono<List> none blocking operation a
+        // "block" operation is performed to convert to a single java.util.List "blocking current thread",
+        // which will wait until the Mono<List> is completed so there is no need to set a Time-Out above 1 second:
+        List<Integer> legacyList = app.collectAsSingle(new Integer[]{1, 2, 3, 4}, Duration.ofMillis(250)).block();
+        System.out.println(legacyList);
+
+// console output:
+Collect List and Block tests ...
+12:23:57.651 [main] INFO reactor.Mono.CollectList.6 -- | onSubscribe([Fuseable] MonoCollectList.MonoCollectListSubscriber)
+12:23:57.651 [main] INFO reactor.Mono.CollectList.6 -- | request(unbounded)
+12:23:58.701 [parallel-6] INFO reactor.Mono.CollectList.6 -- | onNext([1, 2, 3, 4])
+12:23:58.701 [parallel-6] INFO reactor.Mono.CollectList.6 -- | onComplete()
+[1, 2, 3, 4]
+</code></pre>
+
+
 ---
 ### Requirements
 1. ⚠️Docker must be running before executing Application.

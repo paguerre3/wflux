@@ -75,6 +75,16 @@ public class AReactiveDefinitions {
         return Flux.zip(f1, f2, (n, s) -> (n + "-" + s).toUpperCase());
     }
 
+    private Mono<List<Integer>> collectAsSingle(final Integer[] data, final Duration delayElements) {
+        // from Flux to Mono
+        return Flux
+                .fromArray(data)
+                .delayElements(delayElements)
+                // returns a Observable none blocking operation as a Mono "single" Stream
+                .collectList()
+                .log();
+    }
+
     public static void main(String[] args) throws InterruptedException {
         var app = new AReactiveDefinitions();
         System.out.println("Mono tests ...");
@@ -115,6 +125,13 @@ public class AReactiveDefinitions {
         System.out.println("...");
         // it will only combine 1st 3 elements because when the shortest stream completes, the rest will be ignored:
         app.combineToSingle(new Integer[]{1, 2, 3, 4, 5}, "a", "b", "c").subscribe(System.out::println);
+
+        System.out.println("Collect List and Block tests ...");
+        // instead of subscribing to the Mono<List> none blocking operation
+        // "block" operation is performed to convert to a single java.util.List "blocking current thread",
+        // which will wait until the Mono<List> is completed so there is no need to set a Time-Out above 1 second:
+        List<Integer> legacyList = app.collectAsSingle(new Integer[]{1, 2, 3, 4}, Duration.ofMillis(250)).block();
+        System.out.println(legacyList);
     }
 
     record Person(String fullName, int age) {}
