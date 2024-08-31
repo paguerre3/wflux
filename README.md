@@ -54,6 +54,7 @@ for building non-blocking applications on the JVM.
 - <code>Mono.just("java").log()</code> will log the workflow life cycle after <code>subscribe()</code> is performed, otherwise it doesn't do anything, i.e. the log won't display "java" as no subscription exists.
 - <code>Mono.empty()</code> simply returns empty even after subscription -***Note*** <code>onNext()</code> isn't performed when returning empty.
 <pre><code>
+```java
     private Mono<String> verifySingleData(final String value) {
         return Mono
                 .justOrEmpty(value)
@@ -65,9 +66,9 @@ for building non-blocking applications on the JVM.
         System.out.println("Mono tests ...");
         app.verifySingleData("java").subscribe(System.out::println);
         app.verifySingleData(null).subscribe(System.out::println);
-
+```
+```text
 // console output:
-> Task :org.wflux.demo.AReactiveDefinitions.main()
 Mono tests ...
 23:20:30.175 [main] INFO reactor.Mono.Just.1 -- | onSubscribe([Synchronous Fuseable] Operators.ScalarSubscription)
 23:20:30.178 [main] INFO reactor.Mono.Just.1 -- | request(unbounded)
@@ -77,6 +78,7 @@ java
 23:20:30.181 [main] INFO reactor.Mono.Empty.2 -- onSubscribe([Fuseable] Operators.EmptySubscription)
 23:20:30.181 [main] INFO reactor.Mono.Empty.2 -- request(unbounded)
 23:20:30.181 [main] INFO reactor.Mono.Empty.2 -- onComplete()
+```
 </code></pre>
 
 #### 2. Flux
