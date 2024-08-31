@@ -425,7 +425,7 @@ It is generally discouraged in production code, especially in a fully reactive e
 
 
 ---
-# Buffer
+#### Buffer
 <code>buffer()</code> method is used <b>to collect elements emitted by a Flux into batches (or "buffers") based on certain conditions</b>, 
 such as a specific size, time duration, or when a particular event occurs.
 This can be <b>useful for processing a "batch" of elements together instead of handling each one individually as they arrive</b>.
@@ -487,6 +487,10 @@ Buffer tests ...
 [2, 3]
 [4]
 ```
+
+
+---
+#### Collect Map
 
 
 ---
