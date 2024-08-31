@@ -379,7 +379,7 @@ In summary, <b>zip</b> is used often when there is a need to coordinate multiple
 ---
 #### Collect List and Block
 - <code>collectList</code> function is used to <b>collect all the elements emitted by a Flux or Mono into a Observable List</b>, i.e. 
-take all elements emitted by a <b>Flux<T></b> or <b>Mono<T></b> and return it a <b>Mono<List<T>></b>.
+takes all elements emitted by a `Flux<T>` or `Mono<T>` and return it as a `Mono<List<T>>`.
 - <code>block</code> method is used to <b>block the current thread until the Mono or Flux completes and returns a result</b>. 
 This is a <b>way to transform the reactive, non-blocking code into a blocking, synchronous call</b>, which can be useful in certain scenarios, 
 e.g. testing or integrating with legacy code resulting into direct <code>java.util.List</code>.
@@ -415,9 +415,9 @@ Collect List and Block tests ...
 ```
 
 ***Notes about Block***
-- Using <code>block()</code> on a 'Mono<T>', it will wait until the Mono emits a value and then return that value. 
+- Using <code>block()</code> on a `Mono<T>`, it will wait until the Mono emits a value and then return that value. 
 If the Mono is empty, it will return null.
-- Using <code>block()</code> on a Flux<T>, it will wait until the Flux completes and return the first emitted element. 
+- Using <code>block()</code> on a `Flux<T>`, it will wait until the Flux completes and return the first emitted element. 
 If the Flux is empty, it will return null.
 - ⚠️<code>block()</code> in a reactive application <b>can defeat the purpose of non-blocking I/O and reactive programming, as it will block the thread and can lead to performance issues if used improperly</b>. 
 It is generally discouraged in production code, especially in a fully reactive environment.
@@ -491,6 +491,46 @@ Buffer tests ...
 
 ---
 #### Collect Map
+<code>collectMap()</code> operator is used to <b>collect the elements emitted by a Flux into an Observable Map</b>, 
+i.e. takes all elements emitted by a `Flux<T>` or `Mono<T>` and return it as a `Mono<Map<K, V>>`. 
+This allows to create a Map where each <b>key is derived from the elements of the Flux, and each value is the corresponding element or derived from it</b>.
+<code>collectMap()</code> takes <b>two main arguments</b>:
+- ⚠️Required: A ***key mapping function*** that determines how each element in the Flux will be mapped to a Key in the resulting Map.
+- (Optional): A ***value mapping function*** that determines how each element will be mapped to a Value in the resulting Map. 
+If not provided, the elements themselves are used as values.
+```java
+    private Mono<Map<String, String>> collectAsSingleByKey(final List<Person> people) {
+        return Flux.fromIterable(people)
+                .collectMap(p -> p.id, Person::fullName);
+    }
+    
+    public static void main(String[] args) throws InterruptedException {
+        var app = new AReactiveDefinitions();
+        System.out.println("Collect Map tests ...");
+        app.collectAsSingleByKey(List.of(new Person("Cami", 10),
+                        new Person("Ema", 10),
+                        new Person("Male", 22)))
+                .subscribe(System.out::println);
+    }
+
+    record Person(String id, String fullName, int age) {
+    
+        Person(final String fullName, final int age) {
+            this(UUID.randomUUID().toString(), fullName, age);
+        }
+    }
+```
+```text
+// console output:
+Collect Map tests ...
+{1130dc87-1efd-4666-abdb-6f9574dab316=Cami, e845a5ad-3e29-4f5c-a6d4-d5310475b543=Ema, f36758b6-6e55-43f0-a180-1c394b2129f0=Male}
+```
+***Notes***
+- ⚠️If multiple elements have the same key, the later one will overwrite the earlier one.
+- The resulting `Mono<Map<K, V>>` will contain the final Map after all elements have been processed.
+
+<b>This method is particularly useful when you need to transform a stream of elements into a Map for quick lookups based on a certain property of the elements</b>. 
+E.g., use `collectMap()` to create a lookup table from a list of objects based on their IDs.
 
 
 ---

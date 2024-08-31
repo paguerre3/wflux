@@ -5,9 +5,7 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class AReactiveDefinitions {
@@ -91,6 +89,11 @@ public class AReactiveDefinitions {
                 .buffer(batch);
     }
 
+    private Mono<Map<String, String>> collectAsSingleByKey(final List<Person> people) {
+        return Flux.fromIterable(people)
+                .collectMap(p -> p.id, Person::fullName);
+    }
+
     public static void main(String[] args) throws InterruptedException {
         var app = new AReactiveDefinitions();
         System.out.println("Mono tests ...");
@@ -143,9 +146,20 @@ public class AReactiveDefinitions {
         // emit elements every 100 millisecond and buffer every 210 milliseconds, i.e. creating 3 batches:
         app.buffer(5, Duration.ofMillis(100), Duration.ofMillis(210)).subscribe(System.out::println);
         TimeUnit.SECONDS.sleep(1);
+
+        System.out.println("Collect Map tests ...");
+        app.collectAsSingleByKey(List.of(new Person("Cami", 10),
+                        new Person("Ema", 10),
+                        new Person("Male", 22)))
+                .subscribe(System.out::println);
     }
 
-    record Person(String fullName, int age) {}
+    record Person(String id, String fullName, int age) {
+
+        Person(final String fullName, final int age) {
+            this(UUID.randomUUID().toString(), fullName, age);
+        }
+    }
 
     enum InsertMode { CONCAT, MERGE }
 }
