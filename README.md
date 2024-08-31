@@ -180,7 +180,7 @@ Male
 - <code>.skip(...)</code> is a method overloaded with many options/conditions to <b>skip elements already emitted</b> within a Reactive Stream a.k.a. skipping the <code>onNext()</code> call and is being added after creating Flux or Mono streams/Publishers for changing the behaviour of the Workflow.
 - <code>.delayElements(...)</code> is another method being added after creating Flux or Mono streams/Publishers for changing the behaviour of the Workflow <b>adding time before emitting each element</b>.
 
-E.g. adding <b>Delay</b> before the emission of each of the elements of the stream but taking into account that some of them will be <b>Skipped</b> within an specified time window, i.e. Flux will ignore all elements emitted during the initial duration and only start emitting after that period has elapsed. 
+E.g. adding <b>Delay</b> before the emission of each of the elements of the stream but taking into account that some of them will be <b>Skipped</b> within a specified time window, i.e. Flux will ignore all elements emitted during the initial duration and only start emitting after that period has elapsed. 
 ```java
     private Flux<String> getCertainDataWithDelay(final String... data) {
         return Flux.just(data)
@@ -378,7 +378,7 @@ In summary, <b>zip</b> is used often when there is a need to coordinate multiple
 
 ---
 #### Collect List and Block
-- <code>collectList</code> function is used to <b>collect all the elements emitted by a Flux or Mono into a Observable List</b>, i.e. 
+- <code>collectList</code> function is used to <b>collect all the elements emitted by a Flux or Mono into an Observable List</b>, i.e. 
 takes all elements emitted by a `Flux<T>` or `Mono<T>` and return it as a `Mono<List<T>>`.
 - <code>block</code> method is used to <b>block the current thread until the Mono or Flux completes and returns a result</b>. 
 This is a <b>way to transform the reactive, non-blocking code into a blocking, synchronous call</b>, which can be useful in certain scenarios, 
@@ -389,7 +389,7 @@ e.g. testing or integrating with legacy code resulting into direct <code>java.ut
         return Flux
                 .fromArray(data)
                 .delayElements(delayElements)
-                // returns a Observable none blocking operation as a Mono "single" Stream
+                // returns an Observable none blocking operation as a Mono "single" Stream
                 .collectList()
                 .log();
     }
@@ -647,7 +647,7 @@ When combining reactive programming with databases, <b>the goal is to interact w
 - <b>`Compensating transactions`</b> are a technique used to handle failures in distributed systems where traditional ACID (Atomicity, Consistency, Isolation, Durability) transactions aren't feasible due to the system's distributed nature. 
 In such cases, a series of operations across multiple services might be needed to achieve a business goal. 
 <b>If one of these operations fails after others have been completed, a compensating transaction is used to undo the work done by previous operations</b>, instead of Rolling back everything, 
-i.e. if a failure occurs during a multi-step operation, instead of rolling back all previous operations as in a traditional transaction, <b>compensating transactions perform the reverse of the previous operations to "undo" their effects</b>.
+i.e. if a failure occurs during a multiple-step operation, instead of rolling back all previous operations as in a traditional transaction, <b>compensating transactions perform the reverse of the previous operations to "undo" their effects</b>.
 Compensating transactions are often implemented as part of the <b>Saga pattern</b>, where each step in a distributed transaction has a corresponding compensating transaction that can be invoked to revert the changes made if something goes wrong.
 E.g. imagine an e-commerce application where a customer places an order, the payment is processed, and the inventory is updated. *If the payment is successful but updating the inventory fails, a compensating transaction would be to refund the payment and cancel the order*.
 Often used in the context of long-running processes and distributed transactions.
