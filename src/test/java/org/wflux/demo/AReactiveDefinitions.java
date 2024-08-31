@@ -80,7 +80,7 @@ public class AReactiveDefinitions {
         return Flux
                 .fromArray(data)
                 .delayElements(delayElements)
-                // returns a Observable none blocking operation as a Mono "single" Stream
+                // returns an Observable none blocking operation as a Mono "single" Stream
                 .collectList()
                 .log();
     }
@@ -106,7 +106,7 @@ public class AReactiveDefinitions {
                 Optional.of(new Person("Male", 22)))).subscribe(System.out::println);
 
         System.out.println("Delay and Skip tests ...");
-        // Total duration of emission is 1.5 seconds but the elements emitted inside 1 second window will be ignored:
+        // Total duration of emission is 1.5 seconds but the elements emitted inside 1-second window will be ignored:
         app.getCertainDataWithDelay("cpp", "python", "javascript", "java", "go").subscribe(System.out::println);
         // Requirement!!!: Wait for 2 seconds to allow the emission of the elements according to de delay established above.
         // Otherwise, the elements won't be emitted as the main thread will exit immediately.
