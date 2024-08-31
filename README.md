@@ -653,7 +653,7 @@ E.g. imagine an e-commerce application where a customer places an order, the pay
 Often used in the context of long-running processes and distributed transactions.
 - <b>`Event Sourcing` is a pattern where the state of a system is determined by a sequence of events</b>. 
 Instead of storing the current state directly, <b>every change in the system is stored as a distinct event and 'the current state' can then be recreated by replaying all the events in order</b>.
-*Events as the Source of Truth, i.e. Every state change in the application is recorded as an event, and these events are immutable therefore the state of the system at any point can be derived by replaying all the events up to that point.
+*Events as the Source of Truth*, i.e. Every state change in the application is recorded as an event, and these events are immutable therefore the state of the system at any point can be derived by replaying all the events up to that point.
 <b>The series of events is stored as an event stream</b>, i.e. New events are appended to the stream whenever there’s a change in the system.
 *Rebuilding the State*, i.e. the current state of an entity can be rebuilt by applying the sequence of events from the event store.
 Event sourcing provides a complete history of changes, making it <b>easy to audit and debug</b>.
