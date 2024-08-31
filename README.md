@@ -631,6 +631,57 @@ Sol
 
 
 ---
+### Data Base 
+Reactive Programming intend is for asynchronous non-blocking operations and the most common blocking element in any program is a database.
+When combining reactive programming with databases, <b>the goal is to interact with the database in a non-blocking, asynchronous manner while maintaining high performance</b>.
+
+- <b>Reactive Database Drivers</b>: These drivers are designed to work in a non-blocking way, allowing the database interactions to be part of the reactive stream. Examples include R2DBC (Reactive Relational Database Connectivity) for SQL databases and reactive drivers for NoSQL databases like MongoDB. 
+<b>R2DBC is a specification that defines a reactive API to interact with SQL databases in a non-blocking manner</b> and unlike traditional JDBC, which is blocking, R2DBC enables the full potential of reactive streams by allowing SQL operations to be performed asynchronously.
+- <b>In frameworks like Spring Data, reactive repositories provide an abstraction over database operations that returns reactive types</b> (like <b>Mono and Flux</b> in Project Reactor). This allows to perform database operations in a fully reactive manner.
+- <b>Database Access Patterns</b>: `Non-blocking queries` are executed asynchronously, and the results are provided as a stream that can be processed reactively.
+`Streaming large datasets` means reactive streams allow data to be processed incrementally as it is retrieved from the database instead of loading large datasets into memory.
+- <b>Concurrency and Transactions</b>: Handling concurrency in a reactive environment can be more complex, especially when dealing with transactions. Traditional transactions are often based on blocking mechanisms, so reactive programming may require new patterns, like using compensating transactions or event sourcing.
+- <b>Event-Driven Architecture</b>: Databases can emit events that can be consumed by reactive streams. This is particularly useful in systems where you need to react to changes in data in real-time, such as in microservices architectures or event-sourcing systems.
+
+The combination of reactive programming and database concepts can lead to highly scalable and efficient applications:
+
+- <b>Reactive CRUD Operations</b>: Basic create, read, update, and delete operations can be performed using reactive repositories that return reactive types. This allows the entire application flow to remain non-blocking.
+- ⚠️<b>Handling Backpressure in Data Fetching</b>: <b>When fetching large amounts of data from the database, reactive streams allow the consumer to control the rate at which data is processed</b>, avoiding overwhelming the system.
+- <b>Real-Time Data Processing</b>: By integrating reactive streams with event-driven databases or database triggers, you can create systems that process and respond to data changes in real-time.
+- <b>End-to-End Reactive Systems</b>: From the user interface to the database, reactive programming enables an end-to-end non-blocking flow, leading to better performance and user experience, especially under high load.
+
+Reactive programming and database concepts, when combined, offer a powerful toolkit for building modern, scalable, and responsive applications. By leveraging non-blocking I/O, backpressure, and reactive streams, you can create systems that are resilient, maintainable, and efficient in handling large-scale data operations.
+```java
+@EnableReactiveMongoRepositories
+public class CDatabaseConfiguration extends AbstractReactiveMongoConfiguration {
+    @Bean
+    public MongoClient mongoClient() {
+        return MongoClients.create();
+    }
+
+    @Override
+    protected String getDatabaseName() {
+        // using default mongo database name:
+        return "test";
+    }
+
+    // for making reactive queries:
+    @Bean
+    public ReactiveMongoTemplate reactiveMongoTemplate() {
+        return new ReactiveMongoTemplate(this.mongoClient(), this.getDatabaseName());
+    }
+}
+```
+```text
+// console output:
+2024-08-31T19:57:44.701-03:00  INFO 13384 --- [demo] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Reactive MongoDB repositories in DEFAULT mode.
+2024-08-31T19:57:44.716-03:00  INFO 13384 --- [demo] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 11 ms. Found 0 Reactive MongoDB repository interfaces.
+2024-08-31T19:57:45.612-03:00  INFO 13384 --- [demo] [  restartedMain] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|reactive-streams|spring-boot", "version": "5.0.1"}, "os": {"type": "Windows", "name": "Windows 11", "architecture": "amd64", "version": "10.0"}, "platform": "Java/Oracle Corporation/22.0.2+9-70"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=MongoCredential{mechanism=null, userName='root', source='test', password=<hidden>, mechanismProperties=<hidden>}, transportSettings=NettyTransportSettings{eventLoopGroup=io.netty.channel.nio.NioEventLoopGroup@691a279b, socketChannelClass=null, allocator=null, sslContext=null}, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@6efd6663], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@307b48ef, com.mongodb.Jep395RecordCodecProvider@2fd7b828, com.mongodb.KotlinCodecProvider@17c964b6]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27017], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@1282d652], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null}
+2024-08-31T19:57:45.707-03:00  INFO 13384 --- [demo] [localhost:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=51265000}
+```
+
+
+---
 ### Requirements
 1. ⚠️Docker must be running before executing Application.
 2. <code>docker-compose -f mongo.yml up -d</code> before running tests. 
