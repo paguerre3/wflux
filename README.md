@@ -534,6 +534,56 @@ E.g., use `collectMap()` to create a lookup table from a list of objects based o
 
 
 ---
+#### Do Functions
+<b>These operators provide hooks into the reactive stream's lifecycle and are invaluable for adding side effects 'without altering the stream's behavior'</b>.
+- `doOnNext`: React to each item emitted (called each time an item is emitted by the publisher). 
+- `doOnError`: Handle errors (when an error occurs in the stream). 
+- `doOnComplete`: Perform an action on completion (when the stream completes successfully). 
+- `doOnSubscribe`: React to the beginning of a subscription (invoked when a subscription to the publisher occurs). 
+- `doOnTerminate`: Perform an action on termination, regardless of how it happens (either by completing or by encountering an error). 
+- `doOnCancel`: Handle subscription cancellation. 
+- `doFinally`: Guaranteed cleanup or final action (regardless of whether the stream completes, errors, or is canceled).
+
+These `doOn` operators allow to add side effects at various stages of a reactive stream's lifecycle, 
+often <b>used for logging, debugging, updating metrics, or performing additional actions based on the specific event in the stream</b>.
+- `doOnEach`: In addition, the `doOnEach` operator <b>allows to add a side effect that occurs when a signal (onNext, onError, or onComplete) is received</b> 
+in a reactive stream. Often used for logging or performing additional actions based on the signal emitted.
+```java
+    private Flux<String> logSignals(final String... data) {
+        return Flux.fromArray(data).doOnEach(s -> {
+            System.out.println("Signal: " + s);
+            if (s.isOnNext()) {
+                System.out.println("Received value: " + s.get());
+            } else if (s.isOnError()) {
+                System.err.println("Error: " + s.getThrowable());
+            } else if (s.isOnComplete()) {
+                System.out.println("Stream completed");
+            }
+        });
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        var app = new AReactiveDefinitions();
+        System.out.println("Do On tests ...");
+        // no need to do .subscribe(System.out::println) as logging and metrics are performed inside "doOnEach"
+        app.logSignals("java", "go", "cpp").subscribe();
+    }
+```
+```text
+// console output:
+Do On tests ...
+Signal: doOnEach_onNext(java)
+Received value: java
+Signal: doOnEach_onNext(go)
+Received value: go
+Signal: doOnEach_onNext(cpp)
+Received value: cpp
+Signal: onComplete()
+Stream completed
+```
+
+
+---
 ### Requirements
 1. ⚠️Docker must be running before executing Application.
 2. <code>docker-compose -f mongo.yml up -d</code> before running tests. 

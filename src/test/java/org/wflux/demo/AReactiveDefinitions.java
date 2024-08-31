@@ -94,6 +94,19 @@ public class AReactiveDefinitions {
                 .collectMap(p -> p.id, Person::fullName);
     }
 
+    private Flux<String> logSignals(final String... data) {
+        return Flux.fromArray(data).doOnEach(s -> {
+            System.out.println("Signal: " + s);
+            if (s.isOnNext()) {
+                System.out.println("Received value: " + s.get());
+            } else if (s.isOnError()) {
+                System.err.println("Error: " + s.getThrowable());
+            } else if (s.isOnComplete()) {
+                System.out.println("Stream completed");
+            }
+        });
+    }
+
     public static void main(String[] args) throws InterruptedException {
         var app = new AReactiveDefinitions();
         System.out.println("Mono tests ...");
@@ -152,10 +165,13 @@ public class AReactiveDefinitions {
                         new Person("Ema", 10),
                         new Person("Male", 22)))
                 .subscribe(System.out::println);
+
+        System.out.println("Do On tests ...");
+        // no need to do .subscribe(System.out::println) as logging and metrics are performed inside "doOnEach"
+        app.logSignals("java", "go", "cpp").subscribe();
     }
 
     record Person(String id, String fullName, int age) {
-
         Person(final String fullName, final int age) {
             this(UUID.randomUUID().toString(), fullName, age);
         }
