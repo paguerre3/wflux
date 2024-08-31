@@ -53,7 +53,6 @@ for building non-blocking applications on the JVM.
 - ⚠️<code>Mono.just("")</code> doesn't allow null values while <code>Mono.justOrEmpty(null)</code> allows it without throwing error.
 - <code>Mono.just("java").log()</code> will log the workflow life cycle after <code>subscribe()</code> is performed, otherwise it doesn't do anything, i.e. the log won't display "java" as no subscription exists.
 - <code>Mono.empty()</code> simply returns empty even after subscription -***Note*** <code>onNext()</code> isn't performed when returning empty.
-<pre><code>
 ```java
     private Mono<String> verifySingleData(final String value) {
         return Mono
@@ -79,7 +78,6 @@ java
 23:20:30.181 [main] INFO reactor.Mono.Empty.2 -- request(unbounded)
 23:20:30.181 [main] INFO reactor.Mono.Empty.2 -- onComplete()
 ```
-</code></pre>
 
 #### 2. Flux
 <code>Flux</code> is a <b>Stream Publisher</b> that can return either <b>empty</b> or <b>non-empty</b> data. Used for a ***collection of entries***.
