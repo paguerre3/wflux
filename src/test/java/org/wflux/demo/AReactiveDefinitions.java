@@ -107,6 +107,15 @@ public class AReactiveDefinitions {
         });
     }
 
+    private Flux<String> getNamesWithFallbacks(final List<Person> people) {
+        return Flux.fromIterable(people)
+                .map(Person::fullName)
+                .onErrorResume(e -> {
+                    System.out.println("Error occurred, switching to Fallback stream, detail: " + e.getMessage());
+                    return Flux.just("Mili", "Sol");
+                });
+    }
+
     public static void main(String[] args) throws InterruptedException {
         var app = new AReactiveDefinitions();
         System.out.println("Mono tests ...");
@@ -169,6 +178,13 @@ public class AReactiveDefinitions {
         System.out.println("Do On tests ...");
         // no need to do .subscribe(System.out::println) as logging and metrics are performed inside "doOnEach"
         app.logSignals("java", "go", "cpp").subscribe();
+
+        System.out.println("On Error tests ...");
+        app.getNamesWithFallbacks(List.of(new Person("Cami", 10),
+                // null value mapping error will occur in this position so the fallback stream process will be triggered
+                // as WebFlux don't allow emitting null values:
+                new Person(null, 0),
+                new Person("Male", 22))).subscribe(System.out::println);
     }
 
     record Person(String id, String fullName, int age) {

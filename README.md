@@ -546,7 +546,7 @@ E.g., use `collectMap()` to create a lookup table from a list of objects based o
 
 These `doOn` operators allow to add side effects at various stages of a reactive stream's lifecycle, 
 often <b>used for logging, debugging, updating metrics, or performing additional actions based on the specific event in the stream</b>.
-- `doOnEach`: In addition, the `doOnEach` operator <b>allows to add a side effect that occurs when a signal (onNext, onError, or onComplete) is received</b> 
+- `doOnEach`: In addition, the `doOnEach` operator <b>allows to add a side effect that occurs when a signal "onNext, onError, or onComplete" is received</b> 
 in a reactive stream. Often used for logging or performing additional actions based on the signal emitted.
 ```java
     private Flux<String> logSignals(final String... data) {
@@ -580,6 +580,53 @@ Signal: doOnEach_onNext(cpp)
 Received value: cpp
 Signal: onComplete()
 Stream completed
+```
+
+
+---
+#### Error Handling
+<b>Once an error happens the entire Stream will be interrupted</b>, i.e. it will stop emitting next elements.  
+
+<b>`onError and retry` operators help ensure that reactive streams are resilient and can recover from failures in a controlled way</b>:
+- `onErrorContinue`: Skips over errors and continues processing remaining (used to continue processing the stream even if certain elements cause an error).
+- `onErrorReturn`: Provides a default value when an error occurs (to replace an error with a specific default value).
+- `onErrorResume`: Switches to a fallback sequence in case of an error (to continue the stream with a fallback sequence after an error). 
+- `onErrorMap`: Maps the error to another exception or provides more context (to change the type of the exception or provide additional context in the error). 
+- `retry`: Retries the entire sequence upon an error (automatically retry the operation before giving up, using default strategy, e.g. 3 retries). 
+- `retryWhen`: Custom retry logic/strategy with more control (used for fine-grained control over retry logic, such as adding delays or exponential backing off between retries).
+
+These operators provide robust ways to handle errors in your reactive streams, ensuring that your application can recover gracefully from unexpected situations.
+```java
+    private Flux<String> getNamesWithFallbacks(final List<Person> people) {
+        return Flux.fromIterable(people)
+                .map(Person::fullName)
+                .onErrorResume(e -> {
+                    System.out.println("Error occurred, switching to Fallback stream, detail: " + e.getMessage());
+                    return Flux.just("Mili", "Sol");
+                });
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        var app = new AReactiveDefinitions();
+        app.getNamesWithFallbacks(List.of(new Person("Cami", 10),
+                // null value mapping error will occur in this position so the fallback stream process will be triggered:
+                new Person(null, 0),
+                new Person("Male", 22))).subscribe(System.out::println);
+    }
+
+    record Person(String id, String fullName, int age) {
+        Person(final String fullName, final int age) {
+            this(UUID.randomUUID().toString(), fullName, age);
+        }
+    }
+```
+```text
+// console output:
+On Error tests ...
+Cami
+Error occurred, switching to Fallback stream, detail: The mapper [org.wflux.demo.AReactiveDefinitions$$Lambda/0x0000023dde0babc8] returned a null value.
+Mili
+Sol
 ```
 
 
