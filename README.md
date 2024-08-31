@@ -65,6 +65,7 @@ for building non-blocking applications on the JVM.
         System.out.println("Mono tests ...");
         app.verifySingleData("java").subscribe(System.out::println);
         app.verifySingleData(null).subscribe(System.out::println);
+    }
 ```
 ```text
 // console output:
@@ -84,28 +85,30 @@ java
 - <code>Flux</code> is designed to handle a sequence of elements, including empty sequences, but <b>it does not directly support null values</b>. 
 Unlike Mono, which has a <code>Mono.justOrEmpty()</code> method to handle potentially null values, <b>Flux does not have a direct equivalent for handling null elements within its sequence</b>.
 Some strategies for handling null values are:
-<pre><code>
-// alt1: ensure to "filter" data before calling a Publisher creation method, preferably using "fromStream":
-var filtered = Arrays.stream("java", null, "go").filter(Objects::nonNull);
-Flux.fromStream(filtered).log().subscribe(System.out::println);
+```java
+public static void main(String[] args) {
+    // alt1: ensure to "filter" data before calling a Publisher creation method, preferably using "fromStream":
+    var filtered = Arrays.stream("java", null, "go").filter(Objects::nonNull);
+    Flux.fromStream(filtered).log().subscribe(System.out::println);
 
-// alt2: using "Optional" and "flatMap" converting null to Mono.empty()
-filtered = Arrays.stream("java", null, "go").map(Optional::ofNullable).map(Mono::justOrEmpty).toList();
-Flux.concat(filtered).log().subscribe(System.out::println);
+    // alt2: using "Optional" and "flatMap" converting null to Mono.empty()
+    filtered = Arrays.stream("java", null, "go").map(Optional::ofNullable).map(Mono::justOrEmpty).toList();
+    Flux.concat(filtered).log().subscribe(System.out::println);
 
-// alt3: using "map" and replacing nulls with "default" value 
-var filtered = Arrays.stream("java", null, "go").map(v -> v != null ? v : "default");
-Flux.fromStream(filtered).log().subscribe(System.out::println);
+    // alt3: using "map" and replacing nulls with "default" value 
+    filtered = Arrays.stream("java", null, "go").map(v -> v != null ? v : "default");
+    Flux.fromStream(filtered).log().subscribe(System.out::println);
 
-// alt4: use defer/lazy from a collection or a stream where null might be present combined with handling null:
-final var filtered = Arrays.stream("java", null, "go").map(Optional::ofNullable).map(Mono::justOrEmpty).toList();
-Flux.defer(() -> Flux.concat(filtered)).log().subscribe(System.out::println);
-</code></pre>
+    // alt4: use defer/lazy from a collection or a stream where null might be present combined with handling null:
+    filtered = Arrays.stream("java", null, "go").map(Optional::ofNullable).map(Mono::justOrEmpty).toList();
+    Flux.defer(() -> Flux.concat(filtered)).log().subscribe(System.out::println);
+}
+```
 - ⚠️<b>Defer</b>: <code>Flux.defer() and Mono.defer()</code> are methods provided by Project Reactor that allows to create a Flux or Mono lazily, 
 meaning the actual creation of the reactive sequence is deferred until a subscriber subscribes to it. 
 This can be useful when you want to delay the evaluation of the reactive sequence until it's actually needed, ensuring that the sequence is generated fresh for each new subscriber.
 - <code>Flux</code> Publisher can be created using <code>Flux.just(...), Flux.fromIterable(), Flux.fromArray(), or Flux.fromStream(...)</code> methods.
-<pre><code>
+```java
     private Flux<String> verifyCollectionOfData(final String... data) {
         final var filtered = Arrays.stream(data).map(Optional::ofNullable).map(Mono::justOrEmpty).toList();
         return Flux.defer(() -> Flux.concat(filtered)).log();
@@ -116,7 +119,8 @@ This can be useful when you want to delay the evaluation of the reactive sequenc
         System.out.println("Flux tests ...");
         app.verifyCollectionOfData("java", null, "go").subscribe(System.out::println);
     }
-
+```
+```text
 // console output:
 Flux tests ...
 23:58:53.091 [main] INFO reactor.Flux.Defer.3 -- onSubscribe(FluxConcatIterable.ConcatIterableSubscriber)
@@ -126,7 +130,7 @@ java
 23:58:53.091 [main] INFO reactor.Flux.Defer.3 -- onNext(go)
 go
 23:58:53.091 [main] INFO reactor.Flux.Defer.3 -- onComplete()
-</code></pre>
+```
 
 ***Important Note***  
 ⚠️The <b>[Reactive Streams Specification](https://www.reactive-streams.org/)</b> mandates that null values are not permitted in reactive streams to avoid ambiguity and potential errors during stream processing.
@@ -137,7 +141,7 @@ go
 ---
 #### Map and FlatMap
 <code>.map() and .flatMap()</code> <b>Conversion Methods</b> are also supported after publisher/stream creation, i.e. using <code>Flux.fromIterable(...).flatMap(...)</code> -e.g. for returning <code>Mono</code> with only people's names of a list of persons- or <code>Mono.just(...).map(...)</code> -e.g. for returning the wrapped Person of an <code>Optional</code>-.
-<pre><code>
+```java
     private Flux<String> getNames(final List<Optional<Person>> people) {
         return Flux
                 .fromIterable(people)
@@ -156,7 +160,8 @@ go
     }
     
     record Person(String fullName, int age) {}
-
+```
+```text
 // console output:
 Map and FlatMap tests ...
 12:33:16.972 [main] INFO reactor.Flux.FlatMap.4 -- onSubscribe(FluxFlatMap.FlatMapMain)
@@ -166,7 +171,7 @@ Cami
 12:33:16.972 [main] INFO reactor.Flux.FlatMap.4 -- onNext(Male)
 Male
 12:33:16.972 [main] INFO reactor.Flux.FlatMap.4 -- onComplete()
-</code></pre>
+```
 
 
 ---
@@ -176,7 +181,7 @@ Male
 - <code>.delayElements(...)</code> is another method being added after creating Flux or Mono streams/Publishers for changing the behaviour of the Workflow <b>adding time before emitting each element</b>.
 
 E.g. adding <b>Delay</b> before the emission of each of the elements of the stream but taking into account that some of them will be <b>Skipped</b> within an specified time window, i.e. Flux will ignore all elements emitted during the initial duration and only start emitting after that period has elapsed. 
-<pre><code>
+```java
     private Flux<String> getCertainDataWithDelay(final String... data) {
         return Flux.just(data)
                 // add Delay of 300 milliseconds among the emission of each element:
@@ -194,7 +199,9 @@ E.g. adding <b>Delay</b> before the emission of each of the elements of the stre
         // Requirement!!!: Wait for "2" seconds to allow the emission of the elements according to de delay established above.
         // Otherwise, the elements won't be emitted as the Main thread will exit immediately because the Stream Workflow runs in parallel -Child thread.
         TimeUnit.SECONDS.sleep(2);
-
+    }
+```
+```text
 // console output:
 Delay and Skip tests ...
 11:41:00.517 [main] INFO reactor.Flux.SkipUntilOther.5 -- onSubscribe(SerializedSubscriber)
@@ -204,12 +211,12 @@ java
 11:41:02.063 [parallel-6] INFO reactor.Flux.SkipUntilOther.5 -- onNext(go)
 go
 11:41:02.063 [parallel-6] INFO reactor.Flux.SkipUntilOther.5 -- onComplete()
-</code></pre>
+```
 
 -  <code>skipWhile(predicate ...) and skipUntil(predicate ...)</code> are methods that allows to skip elements in a Flux based on a predicate condition. 
 They differ in how they determine which elements to skip, i.e. in <code>skipWhile</code> ignores elements as long as the given predicate returns true and in <code>skipUntil</code> ignores elements until the given predicate returns true.
 - <code>range</code> method is used to create a Flux of Integers from a <b>Starting</b> position and a <b>Count</b> of elements.
-<pre><code>
+```java
     private Flux<Integer> skipWhileAndUntil(final int whileStart, final int untilStart,
                                             final int whileVal, final int untilVal) {
         var f1 = Flux.range(whileStart, 10*whileStart).skipWhile(n -> n < whileVal);
@@ -226,7 +233,9 @@ They differ in how they determine which elements to skip, i.e. in <code>skipWhil
         app.skipWhileAndUntil(1, 100, 7, 1097).subscribe(System.out::println);
         System.out.println("...");
         app.skipWhileAndUntil(1, 1, 7, 7).subscribe(System.out::println);
-
+    }
+```
+```text
 // console output:
 SkipWhile and SkipUntil tests ...
 7
@@ -245,7 +254,7 @@ SkipWhile and SkipUntil tests ...
 8
 9
 10
-</code></pre>
+```
 
 
 ---
@@ -256,7 +265,7 @@ SkipWhile and SkipUntil tests ...
 - <code>merge</code> method <b>combines multiple Flux streams into one</b>, <b>interleaving their elements as they are emitted</b>, i.e. elements from all source <b>Flux streams are emitted as soon as they are available, without waiting for one stream to complete</b> before starting the next.
 <b>Interleaves</b> elements from multiple Flux streams as they are emitted.
 <b>Useful when you want to process elements as soon as they become available</b>, regardless of the source.
-<pre><code>
+```java
     private Flux<Integer> unionAll(final int start0, final int start1, final int count,
                                   final Duration delay, final InsertMode mode) {
         var f1 = Flux.range(start0, count).delayElements(delay);
@@ -281,7 +290,8 @@ SkipWhile and SkipUntil tests ...
     }
     
     enum InsertMode { CONCAT, MERGE }
-
+```
+```text
 // console output:
 Concat and Merge tests ...
 1
@@ -305,7 +315,7 @@ Concat and Merge tests ...
 5
 104
 105
-</code></pre>
+```
 
 
 ---
@@ -321,7 +331,7 @@ It waits until all sources have emitted an element before combining them.
 2. <b>Combination</b>: <code>zip</code> by default, it produces a Tuple containing the elements from each source ***-from a Minimum of 2 to 8 sources Maximum, i.e. returning from Tuple2 ... to Tuple8-***.
 Alternatively, you can provide a combinator function to process the elements from the sources and return a combined result.
 3. ⚠️<b>Completes on Shortest Stream</b>: <b>If one of the sources completes before the others, the resulting Flux will complete immediately</b>, and no further combinations are emitted.
-<pre><code>
+```java
     private Flux<Tuple2<Integer, Integer>> combine(final int start0, final int start1, final int count) {
         var f1 = Flux.range(start0, count);
         var f2 = Flux.range(start1, count);
@@ -343,7 +353,9 @@ Alternatively, you can provide a combinator function to process the elements fro
         System.out.println("...");
         // it will only combine 1st 3 elements because when the shortest stream completes, the rest will be ignored:
         app.combineToSingle(new Integer[]{1, 2, 3, 4, 5}, "a", "b", "c").subscribe(System.out::println);
-
+    }
+```
+```text
 // console output:
 Zip tests ...
 [1,101]
@@ -355,7 +367,7 @@ Zip tests ...
 1-A
 2-B
 3-C
-</code></pre>
+```
 
 <b>Use Cases:</b>
 - <b>Combine Related Data</b>: Zipping is useful to combine related pieces of data that are emitted from different sources simultaneously.
@@ -371,7 +383,7 @@ take all elements emitted by a <b>Flux<T></b> or <b>Mono<T></b> and return it a 
 - <code>block</code> method is used to <b>block the current thread until the Mono or Flux completes and returns a result</b>. 
 This is a <b>way to transform the reactive, non-blocking code into a blocking, synchronous call</b>, which can be useful in certain scenarios, 
 e.g. testing or integrating with legacy code resulting into direct <code>java.util.List</code>.
-<pre><code>
+```java
     private Mono<List<Integer>> collectAsSingle(final Integer[] data, final Duration delayElements) {
         // from Flux to Mono
         return Flux
@@ -390,7 +402,9 @@ e.g. testing or integrating with legacy code resulting into direct <code>java.ut
         // which will wait until the Mono<List> is completed so there is no need to set a Time-Out above 1 second:
         List<Integer> legacyList = app.collectAsSingle(new Integer[]{1, 2, 3, 4}, Duration.ofMillis(250)).block();
         System.out.println(legacyList);
-
+    }
+```
+```text
 // console output:
 Collect List and Block tests ...
 12:23:57.651 [main] INFO reactor.Mono.CollectList.6 -- | onSubscribe([Fuseable] MonoCollectList.MonoCollectListSubscriber)
@@ -398,9 +412,9 @@ Collect List and Block tests ...
 12:23:58.701 [parallel-6] INFO reactor.Mono.CollectList.6 -- | onNext([1, 2, 3, 4])
 12:23:58.701 [parallel-6] INFO reactor.Mono.CollectList.6 -- | onComplete()
 [1, 2, 3, 4]
-</code></pre>
+```
 
-*** Notes about Block ***
+***Notes about Block***
 - Using <code>block()</code> on a 'Mono<T>', it will wait until the Mono emits a value and then return that value. 
 If the Mono is empty, it will return null.
 - Using <code>block()</code> on a Flux<T>, it will wait until the Flux completes and return the first emitted element. 
@@ -416,36 +430,42 @@ It is generally discouraged in production code, especially in a fully reactive e
 such as a specific size, time duration, or when a particular event occurs.
 This can be <b>useful for processing a "batch" of elements together instead of handling each one individually as they arrive</b>.
 E.g. create batches of 3 elements from a range of 1 to 10:
-<pre><code>
-Flux.range(1, 10)
-    .buffer(3)
-    .subscribe(System.out::println);
-
+```java
+public static void main(String[] args) {
+    Flux.range(1, 10)
+            .buffer(3)
+            .subscribe(System.out::println);
+}
+```
+```text
 //console output:
 [1, 2, 3]
 [4, 5, 6]
 [7, 8, 9]
 [10]
-</code></pre>
+```
 ***Note*** the default 'buffer' behaviour creates a single "batch" including all elements if no condition is provided.
 
 In addition, is possible to *Buffer by Time*, i.e. collecting elements emitted within a specific time window.
 E.g. create batches every 300 milliseconds from a 'take' of 10 (0 - 9) having 'interval' delay of 100 milliseconds:
-<pre><code>
-Flux.interval(Duration.ofMillis(100))
-    .take(10)
-    .buffer(Duration.ofMillis(300))
-    .subscribe(System.out::println);
-
+```java
+public static void main(String[] args) {
+    Flux.interval(Duration.ofMillis(100))
+            .take(10)
+            .buffer(Duration.ofMillis(300))
+            .subscribe(System.out::println);
+}
+```
+```text
 //console output:
 [0, 1, 2]
 [3, 4, 5]
 [6, 7, 8]
 [9]
-</code></pre>
+```
 Other useful methods are *Buffer by Size and Time*, i.e. <code>.bufferTimeout(3, Duration.ofMillis(300))</code>, 
 and *Buffer Until or While a Predicate is True*. 
-<pre><code>
+```java
     private Flux<List<Long>> buffer(final long take, final Duration interval, final Duration batch) {
         return Flux.interval(interval)
                 .take(take)
@@ -458,13 +478,15 @@ and *Buffer Until or While a Predicate is True*.
         // emit 5 elements in intervals every 100 millisecond and buffer every 210 milliseconds, i.e. creating 3 batches:
         app.buffer(5, Duration.ofMillis(100), Duration.ofMillis(210)).subscribe(System.out::println);
         TimeUnit.SECONDS.sleep(1);
-
+    }
+```
+```text
 // console output:
 Buffer tests ...
 [0, 1]
 [2, 3]
 [4]
-</code></pre>
+```
 
 
 ---
