@@ -8,20 +8,6 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: pass
-      MONGO_INITDB_DATABASE: admin
-
-  mongo-init:
-    image: mongo
-    depends_on:
-      - mongo
-    entrypoint: >
-      bash -c '
-      echo "Creating application user and test database user...";
-      mongo --host mongo -u root -p pass --authenticationDatabase admin <<EOF;
-      use test;
-      db.createUser({ user: "testUser", pwd: "testPass", roles: [{ role: "readWrite", db: "test" }] });
-      EOF
-      '
 
   mongo-express:
     image: mongo-express
@@ -31,5 +17,5 @@ services:
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: pass
-      ME_CONFIG_MONGODB_URL: mongodb://root:pass@mongo:27017/
+      ME_CONFIG_MONGODB_URL: mongodb://root:pass@localhost:27017/
       ME_CONFIG_BASICAUTH: false
