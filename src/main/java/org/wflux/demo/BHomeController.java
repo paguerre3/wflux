@@ -6,6 +6,7 @@ import reactor.core.publisher.Mono;
 
 @Controller
 public class BHomeController {
+
     @GetMapping("/")
     public Mono<String> handleHomePage() {
         // home.html must exist under templates folder located under resources:
