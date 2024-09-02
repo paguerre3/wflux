@@ -735,6 +735,32 @@ public class CDatabaseConfiguration {
 2024-09-02T13:29:29.353-03:00  INFO 19756 --- [demo] [ctor-http-nio-2] reactor.Flux.OnErrorResume.1             : onComplete()
 ```
 
+- **Aggregate Reactive Data Query**:
+```java
+    @GetMapping("/sales/summary")
+    public Mono<Map<String, BigDecimal>> calculateSalesSummary() {
+        return reactiveMongoTemplate.findAll(Customer.class)
+                .flatMap(customer -> Mono.zip(Mono.just(customer), this.calculateOrderSum(customer.getId())))
+                .collectMap(t2 -> t2.getT1().toString(), Tuple2::getT2);
+    }
+
+    private Mono<BigDecimal> calculateOrderSum(final String customerId) {
+        // aggregate reactive data, ie. using reduce function):
+        Criteria criteria = Criteria.where("customerId").is(customerId);
+        return reactiveMongoTemplate.find(Query.query(criteria), Order.class)
+                .map(o -> o.getTotal().subtract(o.getDiscount()))
+                // reduce to Sum of all Order Totals - Discounts:
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+```
+```json
+{
+	"Customer(id=66d5e6ffa72d1525f180eb7c, name=Cami, job=Artist)": 250000,
+	"Customer(id=66d62130b655aa4cd4275684, name=Male, job=Angel)": 325,
+	"Customer(id=66d5e706a72d1525f180eb7d, name=Cami, job=Student)": 0
+}
+```
+
 ---
 ### Requirements
 1. ⚠️Docker must be running before executing Application.
