@@ -19,7 +19,7 @@ services:
       echo "Creating application user and test database user...";
       mongo --host mongo -u root -p pass --authenticationDatabase admin <<EOF;
       use test;
-      db.createUser({ user: "root", pwd: "pass", roles: [{ role: "readWrite", db: "test" }] });
+      db.createUser({ user: "testUser", pwd: "testPass", roles: [{ role: "readWrite", db: "test" }] });
       EOF
       '
 
