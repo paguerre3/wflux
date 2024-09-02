@@ -761,6 +761,43 @@ public class CDatabaseConfiguration {
 }
 ```
 
+
+---
+### Backpressure in reactive systems
+Backpressure is a concept in reactive systems that helps manage the flow of data between producers and consumers. 
+In a reactive system, a producer generates data, and a consumer processes it. 
+**Backpressure comes into play when the producer generates data faster than the consumer can process it, which can lead to resource exhaustion and system failures if not properly handled**.
+
+***How Backpressure Works***
+**Backpressure mechanisms allow the consumer to signal the producer to slow down or stop sending data temporarily until it can catch up**. 
+This ensures that the system remains stable and responsive, even under high load.
+
+***Implementations of Backpressure***
+1. **Reactive Streams API (Java, Kotlin, etc.):** The Reactive Streams API defines a standard for asynchronous stream processing with non-blocking backpressure. 
+It includes interfaces like `Publisher`, `Subscriber`, `Subscription`, and `Processor`.
+
+2. **Project Reactor (Java):** Part of the Spring ecosystem, 
+**Project Reactor implements the Reactive Streams API and provides backpressure strategies like `onBackpressureBuffer`, `onBackpressureDrop`, and `onBackpressureLatest`**.
+
+3. **Akka Streams (Scala/Java):** Akka Streams provide a powerful implementation of Reactive Streams with built-in backpressure handling, 
+allowing you to compose and run reactive stream processing pipelines.
+
+4. **RxJava (Java):** RxJava provides backpressure strategies using operators like `onBackpressureBuffer`, `onBackpressureDrop`, and `onBackpressureLatest`.
+
+***Common Backpressure Strategies***
+- **Buffering:** Store the excess data in a buffer until the consumer can process it. However, this may lead to memory issues if the buffer grows too.
+- **Dropping:** Discard some of the incoming data if the consumer is overwhelmed. This can be useful in cases where losing some data is acceptable (similar to *circuit-breaker*).
+- **Latest:** Only keep the latest item and discard the rest. This is useful when only the most recent data is relevant.
+- **Error Signaling:** Send an error to indicate that the system is overwhelmed, allowing the system to fail gracefully.
+
+***Importance of Backpressure***
+- **Resource Management:** Prevents resource exhaustion by controlling the flow of data.
+- **System Stability:** Helps maintain system stability under varying load conditions.
+- **Responsive Systems:** Ensures that systems remain responsive by preventing them from being overwhelmed.
+
+Backpressure is a critical concept in designing robust and scalable reactive systems, ensuring that data flow is managed efficiently between producers and consumers.
+
+
 ---
 ### Requirements
 1. ⚠️Docker must be running before executing Application.
