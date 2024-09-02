@@ -768,7 +768,6 @@ Backpressure is a concept in reactive systems that helps manage the flow of data
 In a reactive system, a producer generates data, and a consumer processes it. 
 **Backpressure comes into play when the producer generates data faster than the consumer can process it, which can lead to resource exhaustion and system failures if not properly handled**.
 
-***How Backpressure Works***
 **Backpressure mechanisms allow the consumer to signal the producer to slow down or stop sending data temporarily until it can catch up**. 
 This ensures that the system remains stable and responsive, even under high load.
 
