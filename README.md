@@ -713,6 +713,28 @@ public class CDatabaseConfiguration {
 ***Note about Database Creation***
 - By default, if Database isn't created but User has right privileges, <b>Database will be created automatically in the 1st Save of a Document</b>. 
 
+- *Simple Query*:
+```java
+    // e.g.: curl -X GET 'http://localhost:8080/customer/search?name=Cami'
+    @GetMapping("/customer/search")
+    public Flux<Customer> searchCustomerByName(@RequestParam("name") String name) {
+        Criteria criteria = Criteria.where("name").is(name);
+        Query query = Query.query(criteria);
+        return reactiveMongoTemplate.find(query, Customer.class)
+                .log();
+    }
+```
+```text
+// console output:
+2024-09-02T13:29:29.166-03:00 DEBUG 19756 --- [demo] [ctor-http-nio-2] o.s.d.m.core.ReactiveMongoTemplate       : find using query: { "name" : "Cami"} fields: Document{{}} for class: class org.wflux.demo.model.Customer in collection: customer
+2024-09-02T13:29:29.201-03:00  INFO 19756 --- [demo] [ctor-http-nio-2] reactor.Flux.OnErrorResume.1             : onSubscribe(FluxOnErrorResume.ResumeSubscriber)
+2024-09-02T13:29:29.201-03:00  INFO 19756 --- [demo] [ctor-http-nio-2] reactor.Flux.OnErrorResume.1             : request(1)
+2024-09-02T13:29:29.339-03:00  INFO 19756 --- [demo] [      Thread-16] reactor.Flux.OnErrorResume.1             : onNext(Customer(id=66d5e6ffa72d1525f180eb7c, name=Cami, job=Artist))
+2024-09-02T13:29:29.353-03:00  INFO 19756 --- [demo] [ctor-http-nio-2] reactor.Flux.OnErrorResume.1             : request(127)
+2024-09-02T13:29:29.353-03:00  INFO 19756 --- [demo] [ctor-http-nio-2] reactor.Flux.OnErrorResume.1             : onNext(Customer(id=66d5e706a72d1525f180eb7d, name=Cami, job=Student))
+2024-09-02T13:29:29.353-03:00  INFO 19756 --- [demo] [ctor-http-nio-2] reactor.Flux.OnErrorResume.1             : onComplete()
+```
+
 ---
 ### Requirements
 1. ⚠️Docker must be running before executing Application.

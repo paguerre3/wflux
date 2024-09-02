@@ -31,6 +31,7 @@ public class CDataController {
     public Flux<Customer> searchCustomerByName(@RequestParam("name") String name) {
         Criteria criteria = Criteria.where("name").is(name);
         Query query = Query.query(criteria);
-        return reactiveMongoTemplate.find(query, Customer.class);
+        return reactiveMongoTemplate.find(query, Customer.class)
+                .log();
     }
 }
