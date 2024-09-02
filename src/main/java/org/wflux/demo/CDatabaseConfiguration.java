@@ -4,12 +4,11 @@ import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.mongodb.config.AbstractReactiveMongoConfiguration;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
-import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
 
-@EnableReactiveMongoRepositories
-public class CDatabaseConfiguration extends AbstractReactiveMongoConfiguration {
+@Configuration
+public class CDatabaseConfiguration {
 
     @Value("${spring.data.mongodb.uri}")
     private String mongoUri;
@@ -19,14 +18,9 @@ public class CDatabaseConfiguration extends AbstractReactiveMongoConfiguration {
         return MongoClients.create(mongoUri);
     }
 
-    @Override
-    protected String getDatabaseName() {
-        return "demo";
-    }
-
     // for making reactive queries:
-    @Bean
+    @Bean(name = "customReactiveMongoTemplate")
     public ReactiveMongoTemplate reactiveMongoTemplate() {
-        return new ReactiveMongoTemplate(this.mongoClient(), this.getDatabaseName());
+        return new ReactiveMongoTemplate(this.mongoClient(), "demo");
     }
 }
