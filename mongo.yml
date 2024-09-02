@@ -10,6 +10,19 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: pass
       MONGO_INITDB_DATABASE: admin
 
+  mongo-init:
+    image: mongo
+    depends_on:
+      - mongo
+    entrypoint: >
+      bash -c '
+      echo "Creating application user and test database user...";
+      mongo --host mongo -u root -p pass --authenticationDatabase admin <<EOF;
+      use test;
+      db.createUser({ user: "root", pwd: "pass", roles: [{ role: "readWrite", db: "test" }] });
+      EOF
+      '
+
   mongo-express:
     image: mongo-express
     restart: always
