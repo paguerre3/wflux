@@ -670,40 +670,54 @@ The combination of reactive programming and database concepts can lead to highly
 - <b>End-to-End Reactive Systems</b>: From the user interface to the database, reactive programming enables an end-to-end non-blocking flow, leading to better performance and user experience, especially under high load.
 
 Reactive programming and database concepts, when combined, offer a powerful toolkit for building modern, scalable, and responsive applications. By leveraging non-blocking I/O, backpressure, and reactive streams, you can create systems that are resilient, maintainable, and efficient in handling large-scale data operations.
+```properties
+# must use authMechanism=SCRAM-SHA-1 as latest Mongo libraries don't support mongo 7.x authentication mechanism, i.e. SCRAM-SHA-256
+spring.data.mongodb.uri=mongodb://root:pass@localhost:27017/demo?authSource=admin&authMechanism=SCRAM-SHA-1
+logging.level.org.springframework.data.mongodb=DEBUG
+```
 ```java
-@EnableReactiveMongoRepositories
-public class CDatabaseConfiguration extends AbstractReactiveMongoConfiguration {
-    @Bean
-    public MongoClient mongoClient() {
-        return MongoClients.create();
+@SpringBootApplication
+@EnableReactiveMongoRepositories(basePackages = "org.wflux.demo")
+public class DemoApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplication.class, args);
     }
 
-    @Override
-    protected String getDatabaseName() {
-        // using default mongo database name:
-        return "test";
+}
+
+@Configuration
+public class CDatabaseConfiguration {
+
+    @Value("${spring.data.mongodb.uri}")
+    private String mongoUri;
+
+    @Bean
+    public MongoClient mongoClient() {
+        return MongoClients.create(mongoUri);
     }
 
     // for making reactive queries:
-    @Bean
+    @Bean(name = "customReactiveMongoTemplate")
     public ReactiveMongoTemplate reactiveMongoTemplate() {
-        return new ReactiveMongoTemplate(this.mongoClient(), this.getDatabaseName());
+        return new ReactiveMongoTemplate(this.mongoClient(), "demo");
     }
 }
 ```
 ```text
 // console output:
-2024-08-31T19:57:44.701-03:00  INFO 13384 --- [demo] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Reactive MongoDB repositories in DEFAULT mode.
-2024-08-31T19:57:44.716-03:00  INFO 13384 --- [demo] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 11 ms. Found 0 Reactive MongoDB repository interfaces.
-2024-08-31T19:57:45.612-03:00  INFO 13384 --- [demo] [  restartedMain] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|reactive-streams|spring-boot", "version": "5.0.1"}, "os": {"type": "Windows", "name": "Windows 11", "architecture": "amd64", "version": "10.0"}, "platform": "Java/Oracle Corporation/22.0.2+9-70"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=MongoCredential{mechanism=null, userName='root', source='test', password=<hidden>, mechanismProperties=<hidden>}, transportSettings=NettyTransportSettings{eventLoopGroup=io.netty.channel.nio.NioEventLoopGroup@691a279b, socketChannelClass=null, allocator=null, sslContext=null}, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@6efd6663], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@307b48ef, com.mongodb.Jep395RecordCodecProvider@2fd7b828, com.mongodb.KotlinCodecProvider@17c964b6]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27017], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@1282d652], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null}
-2024-08-31T19:57:45.707-03:00  INFO 13384 --- [demo] [localhost:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=51265000}
+2024-09-02T12:15:05.026-03:00  INFO 19952 --- [demo] [  restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 5 ms. Found 0 Reactive MongoDB repository interfaces.
+2024-09-02T12:15:05.763-03:00  INFO 19952 --- [demo] [  restartedMain] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|reactive-streams", "version": "5.0.1"}, "os": {"type": "Windows", "name": "Windows 11", "architecture": "amd64", "version": "10.0"}, "platform": "Java/Oracle Corporation/22.0.2+9-70"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=MongoCredential{mechanism=SCRAM-SHA-1, userName='root', source='admin', password=<hidden>, mechanismProperties=<hidden>}, transportSettings=null, commandListeners=[], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@325bb46b, com.mongodb.Jep395RecordCodecProvider@497d3123, com.mongodb.KotlinCodecProvider@2b657da6]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27017], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=UNSPECIFIED, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null}
+2024-09-02T12:15:05.779-03:00  INFO 19952 --- [demo] [localhost:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=21, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=19198100}
 ```
-
+***Note about Database Creation***
+- By default, if Database isn't created but User has right privileges, <b>Database will be created automatically in the 1st Save of a Document</b>. 
 
 ---
 ### Requirements
 1. ⚠️Docker must be running before executing Application.
 2. <code>docker-compose -f mongo.yml up -d</code> before running tests. 
+3. [Mongo Express URI](http://localhost:8081/)
 
 ***Optional***: Running under WSL needs allowing traffic through the firewall, i.e. 
 using PS <code>New-NetFirewallRule -DisplayName "Allow MongoDB" -Direction Inbound -LocalPort 27017 -Protocol TCP -Action Allow</code>
