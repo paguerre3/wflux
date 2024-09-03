@@ -892,7 +892,7 @@ Element kept by consumer: to N
     }
 ```
 ```text
-// output console:
+// output console (oldest elements are dropped when buffer is reached and demand still surpasses the processing time:
 Element kept by consumer: 0
 Element kept by consumer: 1
 Element kept by consumer: 2
