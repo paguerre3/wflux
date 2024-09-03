@@ -61,8 +61,8 @@ public class DBackpressureStrategies {
 
     private Flux<Long> createOverflowFluxWithBufferingOnBackpressure() {
         //  Stores in memory until demand is covered, i.e. save a large count of elements in memory
-        //  so the demand isn't surpassed "Quickly" as storing a small count Overflow fast,
-        //  Because with Buffering with Size "only" Overflow still occur then its suggested to
+        //  so the demand isn't surpassed "Quickly" as storing a small count Overflows fast,
+        //  Because with Buffering with Size "only" Overflow still occur then it's suggested to
         //  establish a BufferingStrategy when the demand is not covered, e.g. DROP_LATEST. DROP_OLDEST, or ERROR
         //  to inform to reduce publishing.
         //  Emit every 1 millisecond, in parallel:
