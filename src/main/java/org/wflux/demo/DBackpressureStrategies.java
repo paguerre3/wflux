@@ -1,5 +1,6 @@
 package org.wflux.demo;
 
+import reactor.core.publisher.BufferOverflowStrategy;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -26,7 +27,8 @@ public class DBackpressureStrategies {
     /**
      * "Overflow" will occur because evey "1" millisecond the data is being emitted
      * but the processing time is larger, i.e. "100" milliseconds.
-     **
+     * Demand surpass will cause an "onError" Overflow.
+     *
      * @return Flux<Long>
      */
     private Flux<Long> createOverflowFlux() {
@@ -43,11 +45,53 @@ public class DBackpressureStrategies {
                 .concatMap(i -> Mono.delay(Duration.ofMillis(100)));
     }
 
+    private Flux<Long> createOverflowFluxWithDropOnBackpressure() {
+        // Only in cases where elements emitted can be ignored when demand surpass occurs.
+        //  Emit every 1 millisecond, in parallel:
+        return Flux.interval(Duration.ofMillis(1))
+                // Request an unbounded demand and push to the returned Flux,
+                // or drop the observed elements if not enough demand is requested downstream.
+                .onBackpressureDrop()
+                // process time takes 100 milliseconds:
+                .concatMap(i -> Mono.delay(Duration.ofMillis(100))
+                        // Let this Mono complete successfully, then emit the provided value.
+                        .thenReturn(i))
+                .doOnNext(j -> System.out.printf("Element kept by consumer: %s%n", j));
+    }
+
+    private Flux<Long> createOverflowFluxWithBufferingOnBackpressure() {
+        //  Stores in memory until demand is covered, i.e. save a large count of elements in memory
+        //  so the demand isn't surpassed "Quickly" as storing a small count Overflow fast,
+        //  Because with Buffering with Size "only" Overflow still occur then its suggested to
+        //  establish a BufferingStrategy when the demand is not covered, e.g. DROP_LATEST. DROP_OLDEST, or ERROR
+        //  to inform to reduce publishing.
+        //  Emit every 1 millisecond, in parallel:
+        return Flux.interval(Duration.ofMillis(1))
+                // Request an unbounded demand and push to the returned Flux,
+                // or "park up to maxSize" elements when not enough demand is requested downstream.
+                // The first element past this buffer to arrive out of sync with the downstream subscriber's demand
+                // (the "overflowing" element) immediately triggers an overflow error and cancels the source.
+                // The Flux is going to terminate with an overflow error, but this error is delayed,
+                // which lets the subscriber make more requests for the content of the buffer.
+                .onBackpressureBuffer(1500,
+                        // When the buffer is full, remove the oldest element from it and offer the new element at the end instead.
+                        // Do not propagate an error
+                        BufferOverflowStrategy.DROP_OLDEST)
+                // process time takes 100 milliseconds:
+                .concatMap(i -> Mono.delay(Duration.ofMillis(100))
+                        // Let this Mono complete successfully, then emit the provided value.
+                        .thenReturn(i))
+                .doOnNext(j -> System.out.printf("Element kept by consumer: %s%n", j));
+    }
+
     public static void main(String[] args) {
         var bs = new DBackpressureStrategies();
-        bs.createNoOverflowFlux()
+        //bs.createNoOverflowFlux()
+        //bs.createOverflowFlux()
+        //bs.createOverflowFluxWithDropOnBackpressure()
+        bs.createOverflowFluxWithBufferingOnBackpressure()
                 // blockLast(): it automatically subscribes to the Flux and starts processing elements
-                // blocking indefinitely until the upstream signals its last value or completes:
+                // blocking indefinitely "until the upstream signals its last value or completes":
                 .blockLast();
     }
 }
