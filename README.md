@@ -978,7 +978,58 @@ and <code>New-NetFirewallRule -DisplayName "Allow MongoExpress" -Direction Inbou
 
 
 
+---
+### Java Stream API summary
 
+### **Overview of Java Stream API Structure**
+
+The Java Stream API operates on a sequence of elements and allows functional-style operations to process data. Here are its three main components:
+
+1. **Source**: The data source for the stream, such as a `Collection`, array, or I/O channel.  
+   Example:  
+   ```java
+   List<Integer> numbers = List.of(1, 2, 3, 4, 5); // Source
+   ```
+
+2. **Intermediate Operations**: Transform the stream into another stream. These are lazy and only executed when a terminal operation is invoked.  
+   Example:  
+   ```java
+   numbers.stream().filter(n -> n % 2 == 0).map(n -> n * n); // Intermediate
+   ```
+
+3. **Terminal Operations**: Trigger the pipeline and produce a result or a side effect, consuming the stream.  
+   Example:  
+   ```java
+   numbers.stream().filter(n -> n % 2 == 0).map(n -> n * n).collect(Collectors.toList()); // Terminal
+   ```
+
+---
+
+### **Detailed Table of Stream API Operations**
+
+| **Operation**            | **Type**        | **Description**                                                                 | **Example**                                                                                 |
+|---------------------------|-----------------|---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| **`filter(Predicate)`**   | Intermediate    | Filters elements based on a condition.                                         | `List.of(1, 2, 3).stream().filter(n -> n > 1).forEach(System.out::println); // 2, 3`       |
+| **`map(Function)`**       | Intermediate    | Transforms each element in the stream.                                         | `List.of(1, 2, 3).stream().map(n -> n * 2).toList(); // [2, 4, 6]`                         |
+| **`flatMap(Function)`**   | Intermediate    | Flattens nested structures into a single stream.                               | `List.of(List.of(1), List.of(2)).stream().flatMap(List::stream).toList(); // [1, 2]`       |
+| **`distinct()`**          | Intermediate    | Removes duplicate elements.                                                    | `List.of(1, 2, 2).stream().distinct().toList(); // [1, 2]`                                 |
+| **`sorted()`**            | Intermediate    | Sorts elements in natural order or using a custom comparator.                  | `List.of(3, 1, 2).stream().sorted().toList(); // [1, 2, 3]`                                |
+| **`limit(long)`**         | Intermediate    | Limits the stream to the first `n` elements.                                   | `List.of(1, 2, 3).stream().limit(2).toList(); // [1, 2]`                                   |
+| **`skip(long)`**          | Intermediate    | Skips the first `n` elements of the stream.                                    | `List.of(1, 2, 3).stream().skip(2).toList(); // [3]`                                       |
+| **`peek(Consumer)`**      | Intermediate    | Performs a side effect on each element without consuming the stream.           | `List.of(1, 2).stream().peek(System.out::println).toList(); // Prints 1, 2`                |
+| **`forEach(Consumer)`**   | Terminal        | Performs an action on each element; consumes the stream.                       | `List.of(1, 2).stream().forEach(System.out::println); // Prints 1, 2`                      |
+| **`collect(Collector)`**  | Terminal        | Accumulates elements into a collection or another structure.                   | `List.of(1, 2).stream().collect(Collectors.toList()); // [1, 2]`                          |
+| **`reduce(BinaryOperator)`** | Terminal    | Combines elements into a single result using a reduction function.             | `List.of(1, 2, 3).stream().reduce(0, Integer::sum); // 6`                                  |
+| **`toArray()`**           | Terminal        | Converts the elements into an array.                                           | `String[] array = List.of("a", "b").stream().toArray(String[]::new); // ["a", "b"]`        |
+| **`count()`**             | Terminal        | Returns the count of elements in the stream.                                   | `long count = List.of(1, 2, 3).stream().count(); // 3`                                     |
+| **`anyMatch(Predicate)`** | Terminal        | Checks if **any** element matches a condition.                                 | `boolean any = List.of(1, 2).stream().anyMatch(n -> n > 1); // true`                       |
+| **`allMatch(Predicate)`** | Terminal        | Checks if **all** elements match a condition.                                  | `boolean all = List.of(1, 2).stream().allMatch(n -> n > 0); // true`                       |
+| **`noneMatch(Predicate)`**| Terminal        | Checks if **none** of the elements match a condition.                          | `boolean none = List.of(1, 2).stream().noneMatch(n -> n < 0); // true`                     |
+| **`findFirst()`**         | Terminal        | Returns the first element (if any) in the stream.                              | `Optional<Integer> first = List.of(1, 2).stream().findFirst(); // 1`                      |
+| **`findAny()`**           | Terminal        | Returns any element (useful for parallel streams).                             | `Optional<Integer> any = List.of(1, 2).parallelStream().findAny(); // 1 or 2`             |
+| **`parallel()`**          | Intermediate    | Converts the stream into a parallel stream for concurrent processing.          | `List.of(1, 2).parallelStream().forEach(System.out::println);`                            |
+| **`sequential()`**        | Intermediate    | Converts the stream back to sequential processing (from parallel).             | `List.of(1, 2).parallelStream().sequential().forEach(System.out::println);`               |
+| **`unordered()`**         | Intermediate    | Removes the guarantee of order from the stream (for potential performance gains). | `List.of(1, 2, 3).stream().unordered().toList(); // Result order may vary`               |
 
 
 
